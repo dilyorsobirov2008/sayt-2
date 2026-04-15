@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id      Int      @id @default(autoincrement())
+  slug    String?  @unique
+  name    String   @unique
+  nameRu  String?
+  icon    String   @default("📁")
+  color   String   @default("#ffffff")
+  image   String   @default("")
+
+  products Product[]
+}
+
+model Product {
+  id                Int      @id @default(autoincrement())
+  title_uz          String?
+  name              String?
+  nameRu            String?
+  brand             String?
+  category_name     String?
+  categorySlug      String?
+  price             Decimal  @db.Decimal(12, 2)
+  available         Boolean  @default(true)
+  inStock           Boolean  @default(true)
+  weight            String?
+  image             String?  @default("https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400&q=80")
+  rating            Float    @default(5.0)
+  reviewCount       Int      @default(0)
+  specs             String?
+  isNew             Boolean  @default(false)
+  isFeatured        Boolean  @default(false)
+  installmentMonths Int?
+  discountPercent   Int?
+  creditMarkupPercent Int?
+  created_at        DateTime @default(now())
+
+  category Category? @relation(fields: [category_name], references: [name])
+
+  @@index([category_name])
+}
+
+model Brand {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  slug String @unique
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  customer        String
+  phone           String
+  product         String
+  amount          Float
+  status          String   @default("new")
+  date            String
+  address         String?
+  region          String?
+  district        String?
+  floor           String?
+  deliveryMethod  String?
+  deliveryTerm    String?
+  installment     Int?
+  paymentMethod   String   @default("cash")
+  telegramSent    Boolean  @default(false)
+  telegramMessageId Int?
+  telegramChatId  String?
+  createdAt       DateTime @default(now())
+}
+
+model InstallmentPlan {
+  id              Int      @id @default(autoincrement())
+  months          Int      @unique
+  interestPercent Float    @default(0)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+model Visitor {
+  id          Int      @id @default(autoincrement())
+  fingerprint String   @unique
+  createdAt   DateTime @default(now())
+}
