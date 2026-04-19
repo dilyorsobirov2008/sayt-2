@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
-import { neonConfig } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 
 // WebSocket polyfill for Node.js environment (Neon serverless requires it)
 if (typeof globalThis.WebSocket === 'undefined') {
@@ -28,8 +28,8 @@ function createPrismaClient(): PrismaClient {
   }
 
   try {
-    // Yangi Prisma 6.x API — Pool kerak emas, to'g'ridan-to'g'ri connectionString beriladi
-    const adapter = new PrismaNeon({ connectionString });
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaNeon(pool);
     return new PrismaClient({ adapter } as any);
   } catch (error) {
     console.error('❌ Prisma client yaratishda xato:', error);
