@@ -1,9 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaNeon } from '@prisma/adapter-neon';
-import { Pool, neonConfig } from '@neondatabase/serverless';
+import { neonConfig } from '@neondatabase/serverless';
 
 // WebSocket polyfill for Node.js environment (Neon serverless requires it)
-// Dynamic import to avoid build-time issues on Vercel edge
 if (typeof globalThis.WebSocket === 'undefined') {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -24,13 +23,13 @@ function createPrismaClient(): PrismaClient {
       '❌ DATABASE_URL environment variable topilmadi! ' +
       'Vercel dashboard → Settings → Environment Variables da DATABASE_URL ni tekshiring.'
     );
-    // Build vaqtida xato bermasligi uchun dummy client qaytarish
+    // Build vaqtida xato bermasligi uchun oddiy client qaytarish
     return new PrismaClient();
   }
 
   try {
-    const pool = new Pool({ connectionString });
-    const adapter = new PrismaNeon(pool as any);
+    // Yangi Prisma 6.x API — Pool kerak emas, to'g'ridan-to'g'ri connectionString beriladi
+    const adapter = new PrismaNeon({ connectionString });
     return new PrismaClient({ adapter } as any);
   } catch (error) {
     console.error('❌ Prisma client yaratishda xato:', error);
