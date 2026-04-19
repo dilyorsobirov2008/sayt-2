@@ -50,8 +50,14 @@ export async function POST(req: NextRequest) {
     // Support both admin dashboard format and simple format
     const name = body.name || body.title_uz;
     const price = parseFloat(body.price) || 0;
-    const categoryName = body.category_name || body.category || '';
+    let categoryName = body.category_name || '';
     const categorySlug = body.categorySlug || body.category || '';
+
+    // Frontend slug yuboradi — haqiqiy category name'ni topamiz
+    if (!categoryName && categorySlug) {
+      const catBySlug = await prisma.category.findFirst({ where: { slug: categorySlug } });
+      if (catBySlug) categoryName = catBySlug.name;
+    }
 
     // Ensure category exists if category_name provided
     if (categoryName) {
@@ -104,8 +110,14 @@ export async function PUT(req: NextRequest) {
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: 'ID kerak' }, { status: 400 });
 
-    const categoryName = body.category_name || body.category || undefined;
+    let categoryName = body.category_name || undefined;
     const categorySlug = body.categorySlug || body.category || undefined;
+
+    // Frontend slug yuboradi — haqiqiy category name'ni topamiz
+    if (!categoryName && categorySlug) {
+      const catBySlug = await prisma.category.findFirst({ where: { slug: categorySlug } });
+      if (catBySlug) categoryName = catBySlug.name;
+    }
 
     // Ensure category exists
     if (categoryName) {
