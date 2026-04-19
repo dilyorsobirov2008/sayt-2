@@ -82,6 +82,7 @@ export default function AdminDashboard() {
     const [excelDragOver, setExcelDragOver] = useState(false);
     const excelInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [isGeneratingSpecs, setIsGeneratingSpecs] = useState(false);
 
     useEffect(() => {
         if (typeof window !== 'undefined' && localStorage.getItem('admin_auth') !== 'true') {
@@ -193,6 +194,31 @@ export default function AdminDashboard() {
             await fetchCategories();
             showToast('🗑️ Kategoriya o‘chirildi!');
         } catch { showToast('❌ Xatolik!'); }
+    };
+
+    const handleGenerateSpecs = async () => {
+        if (!newProduct.name) {
+            showToast('❌ Avval mahsulot nomini kiriting!');
+            return;
+        }
+        setIsGeneratingSpecs(true);
+        try {
+            const res = await fetch('/api/generate-specs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productName: newProduct.name }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Server xatosi');
+            if (data.specs && Array.isArray(data.specs)) {
+                setNewProduct(p => ({ ...p, specs: data.specs }));
+                showToast("✅ Xususiyatlar yuklandi!");
+            }
+        } catch (err: any) {
+            showToast(`❌ Xatolik: ${err.message}`);
+        } finally {
+            setIsGeneratingSpecs(false);
+        }
     };
 
     const handleAddProduct = async () => {
@@ -745,11 +771,19 @@ export default function AdminDashboard() {
                                         <div className="mt-4 pt-4 border-t border-[#1e1e1e]">
                                             <div className="flex items-center justify-between mb-3">
                                                 <label className="text-gray-400 text-xs font-bold uppercase tracking-wider">📋 Xususiyatlar (Specs)</label>
-                                                <button type="button"
-                                                    onClick={() => setNewProduct(p => ({ ...p, specs: [...p.specs, { key: '', value: '' }] }))}
-                                                    className="text-xs bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1">
-                                                    <Plus size={12} /> Qo'shish
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button type="button"
+                                                        onClick={handleGenerateSpecs}
+                                                        disabled={isGeneratingSpecs}
+                                                        className="text-xs bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1 disabled:opacity-50">
+                                                        {isGeneratingSpecs ? '⏳ Yuklanmoqda...' : '✨ Yuklash'}
+                                                    </button>
+                                                    <button type="button"
+                                                        onClick={() => setNewProduct(p => ({ ...p, specs: [...p.specs, { key: '', value: '' }] }))}
+                                                        className="text-xs bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1">
+                                                        <Plus size={12} /> Qo'shish
+                                                    </button>
+                                                </div>
                                             </div>
                                             {newProduct.specs.length === 0 && (
                                                 <p className="text-gray-600 text-xs italic">Xususiyat qo'shish uchun yuqoridagi tugmani bosing (masalan: RAM = 8 GB)</p>
