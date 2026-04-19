@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
 
@@ -76,6 +77,8 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const uploadedImage = await uploadToCloudinary(body.image || body.imageUrl || '');
+
     const product = await prisma.product.create({
       data: {
         title_uz: body.title_uz || name,
@@ -88,7 +91,7 @@ export async function POST(req: NextRequest) {
         available: body.available !== undefined ? Boolean(body.available) : (body.inStock !== undefined ? Boolean(body.inStock) : true),
         inStock: body.inStock !== undefined ? Boolean(body.inStock) : true,
         weight: body.weight || null,
-        image: body.image || body.imageUrl || null,
+        image: uploadedImage || null,
         isNew: body.isNew || false,
         isFeatured: body.isFeatured || false,
         installmentMonths: body.installmentMonths ? parseInt(body.installmentMonths) : null,
@@ -136,6 +139,11 @@ export async function PUT(req: NextRequest) {
       }
     }
 
+    let uploadedImage = body.image;
+    if (body.image) {
+      uploadedImage = await uploadToCloudinary(body.image);
+    }
+
     const product = await prisma.product.update({
       where: { id: parseInt(body.id) },
       data: {
@@ -145,7 +153,7 @@ export async function PUT(req: NextRequest) {
         category_name: categoryName,
         categorySlug: categorySlug,
         price: body.price ? parseFloat(body.price) : undefined,
-        image: body.image,
+        image: uploadedImage,
         inStock: body.inStock,
         available: body.available ?? body.inStock,
         isNew: body.isNew,

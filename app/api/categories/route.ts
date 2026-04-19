@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { uploadToCloudinary } from '@/lib/cloudinary';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,6 +44,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Slug va Nom kiritilishi shart' }, { status: 400 });
         }
 
+        const uploadedImage = await uploadToCloudinary(body.image || '');
+
         const category = await prisma.category.create({
             data: {
                 slug: body.slug.trim(),
@@ -50,7 +53,7 @@ export async function POST(req: NextRequest) {
                 nameRu: body.nameRu?.trim() || body.name.trim(),
                 icon: body.icon || '📁',
                 color: body.color || '#ffffff',
-                image: body.image || '',
+                image: uploadedImage || '',
             },
         });
         return NextResponse.json(category);
@@ -68,6 +71,11 @@ export async function PUT(req: NextRequest) {
         const body = await req.json();
         if (!body.id) return NextResponse.json({ error: 'ID kerak' }, { status: 400 });
 
+        let uploadedImage = body.image;
+        if (body.image) {
+            uploadedImage = await uploadToCloudinary(body.image);
+        }
+
         const category = await prisma.category.update({
             where: { id: Number(body.id) },
             data: {
@@ -76,7 +84,7 @@ export async function PUT(req: NextRequest) {
                 nameRu: body.nameRu?.trim() || body.name?.trim(),
                 icon: body.icon,
                 color: body.color,
-                image: body.image,
+                image: uploadedImage,
             },
         });
         return NextResponse.json(category);
