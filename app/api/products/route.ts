@@ -55,11 +55,19 @@ export async function POST(req: NextRequest) {
 
     // Ensure category exists if category_name provided
     if (categoryName) {
-      await prisma.category.upsert({
-        where: { name: categoryName },
-        update: {},
-        create: { name: categoryName, slug: categorySlug || categoryName.toLowerCase().replace(/\s+/g, '-') },
+      const existingCat = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { name: categoryName },
+            { slug: categorySlug || categoryName.toLowerCase().replace(/\s+/g, '-') },
+          ]
+        }
       });
+      if (!existingCat) {
+        await prisma.category.create({
+          data: { name: categoryName, slug: categorySlug || categoryName.toLowerCase().replace(/\s+/g, '-') },
+        });
+      }
     }
 
     const product = await prisma.product.create({
@@ -101,11 +109,19 @@ export async function PUT(req: NextRequest) {
 
     // Ensure category exists
     if (categoryName) {
-      await prisma.category.upsert({
-        where: { name: categoryName },
-        update: {},
-        create: { name: categoryName, slug: categorySlug || categoryName.toLowerCase().replace(/\s+/g, '-') },
+      const existingCat = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { name: categoryName },
+            { slug: categorySlug || categoryName.toLowerCase().replace(/\s+/g, '-') },
+          ]
+        }
       });
+      if (!existingCat) {
+        await prisma.category.create({
+          data: { name: categoryName, slug: categorySlug || categoryName.toLowerCase().replace(/\s+/g, '-') },
+        });
+      }
     }
 
     const product = await prisma.product.update({
