@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatPrice, calcInstallment, calcCreditPrice } from '@/lib/utils';
 import { Product, Category, Brand } from '@/lib/types';
-import { Plus, Pencil, Trash2, Upload, ImageIcon, X, Search, ShoppingCart, Heart, Star, Check, AlertCircle, Tag } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, ImageIcon, X, Search, ShoppingCart, Heart, Star, Check, AlertCircle, Tag, FileSpreadsheet, Download, Info } from 'lucide-react';
 
 // ─── Mock Orders with delete support ───
 const INITIAL_ORDERS = [
@@ -50,6 +50,7 @@ const TABS = [
     { id: 'installments', label: "Bo'lib to'lash" },
     { id: 'categories', label: 'Kategoriyalar' },
     { id: 'brands', label: 'Brendlar' },
+    { id: 'excel-import', label: '📥 Excel Import' },
     { id: 'users', label: 'Foydalanuvchilar' },
 ];
 
@@ -74,6 +75,12 @@ export default function AdminDashboard() {
     const [catImageMode, setCatImageMode] = useState<'url' | 'upload'>('url');
     const [searchQ, setSearchQ] = useState('');
     const [toast, setToast] = useState('');
+    // Excel import states
+    const [excelFile, setExcelFile] = useState<File | null>(null);
+    const [excelImporting, setExcelImporting] = useState(false);
+    const [excelResult, setExcelResult] = useState<any>(null);
+    const [excelDragOver, setExcelDragOver] = useState(false);
+    const excelInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -386,6 +393,83 @@ export default function AdminDashboard() {
     );
 
     const totalRevenue = orders.reduce((s, o) => s + o.amount, 0);
+
+    // ── Excel Import Handlers ──
+    const handleExcelFileSelect = (file: File) => {
+        if (!file.name.endsWith('.xlsx') && !file.name.endsWith('.xls')) {
+            showToast('❌ Faqat .xlsx yoki .xls fayl yuklang!');
+            return;
+        }
+        setExcelFile(file);
+        setExcelResult(null);
+    };
+
+    const handleExcelImport = async () => {
+        if (!excelFile) { showToast('❌ Avval fayl tanlang!'); return; }
+        setExcelImporting(true);
+        setExcelResult(null);
+        try {
+            const reader = new FileReader();
+            const base64 = await new Promise<string>((resolve, reject) => {
+                reader.onload = () => resolve(reader.result as string);
+                reader.onerror = reject;
+                reader.readAsDataURL(excelFile);
+            });
+            const res = await fetch('/api/import-excel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ base64 }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Server xatosi');
+            setExcelResult(data);
+            if (data.success > 0) {
+                await fetchProducts();
+                showToast(`✅ ${data.success} ta mahsulot import qilindi!`);
+            }
+        } catch (err: any) {
+            showToast(`❌ Import xatosi: ${err.message}`);
+            setExcelResult({ error: err.message });
+        } finally {
+            setExcelImporting(false);
+        }
+    };
+
+    const handleDownloadTemplate = () => {
+        const XLSX_LIB = require('xlsx');
+        const templateData = [
+            {
+                'Mahsulot nomi': 'iPhone 15 Pro Max 256GB',
+                'Narxi': 17990000,
+                'Kategoriya': 'Smartfonlar',
+                'Rasm URL': 'https://example.com/iphone15.jpg',
+                'Brend': 'Apple',
+                'Tavsifi': '256GB, Titanium, A17 Pro chip',
+            },
+            {
+                'Mahsulot nomi': 'Samsung Galaxy S24 Ultra',
+                'Narxi': 14990000,
+                'Kategoriya': 'Smartfonlar',
+                'Rasm URL': 'https://example.com/samsung-s24.jpg',
+                'Brend': 'Samsung',
+                'Tavsifi': '512GB, AI Features, S Pen',
+            },
+        ];
+        const ws = XLSX_LIB.utils.json_to_sheet(templateData);
+        // Ustun kengliklarini sozlash
+        ws['!cols'] = [
+            { wch: 35 }, // Mahsulot nomi
+            { wch: 15 }, // Narxi
+            { wch: 20 }, // Kategoriya
+            { wch: 45 }, // Rasm URL
+            { wch: 15 }, // Brend
+            { wch: 40 }, // Tavsifi
+        ];
+        const wb = XLSX_LIB.utils.book_new();
+        XLSX_LIB.utils.book_append_sheet(wb, ws, 'Mahsulotlar');
+        XLSX_LIB.writeFile(wb, 'mahsulotlar_shablon.xlsx');
+        showToast('✅ Shablon yuklab olindi!');
+    };
 
     return (
         <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -1238,6 +1322,169 @@ export default function AdminDashboard() {
                                         </div>
                                     </div>
                                 ))}
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ── EXCEL IMPORT ── */}
+                {activeTab === 'excel-import' && (
+                    <div className="animate-fadeIn space-y-5">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold flex items-center gap-2">
+                                <FileSpreadsheet size={22} className="text-green-400" /> Excel Import
+                            </h2>
+                            <button onClick={handleDownloadTemplate}
+                                className="flex items-center gap-2 bg-green-500 hover:bg-green-400 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
+                                <Download size={16} /> Shablon yuklab olish
+                            </button>
+                        </div>
+
+                        {/* Qo'llanma */}
+                        <div className="bg-blue-500/10 border border-blue-500/20 rounded-2xl p-5">
+                            <div className="flex items-start gap-3">
+                                <Info size={20} className="text-blue-400 mt-0.5 shrink-0" />
+                                <div>
+                                    <h3 className="text-blue-400 font-bold text-sm mb-2">📖 Qanday foydalanish</h3>
+                                    <ol className="text-gray-400 text-sm space-y-1.5 list-decimal list-inside">
+                                        <li><span className="text-green-400 font-semibold">&quot;Shablon yuklab olish&quot;</span> tugmasini bosing</li>
+                                        <li>Yuklab olingan <span className="text-yellow-400">mahsulotlar_shablon.xlsx</span> faylni oching</li>
+                                        <li>Namunaviy ma&apos;lumotlarni o&apos;chirib, o&apos;z tovarlaringizni kiriting</li>
+                                        <li>Faylni saqlang va shu yerga yuklang</li>
+                                    </ol>
+                                    <div className="mt-3 pt-3 border-t border-blue-500/20">
+                                        <p className="text-gray-500 text-xs">📋 <span className="text-white">Ustunlar:</span> Mahsulot nomi* | Narxi* | Kategoriya | Rasm URL | Brend | Tavsifi</p>
+                                        <p className="text-gray-500 text-xs mt-1">⚠️ <span className="text-yellow-400">*</span> — majburiy ustunlar. Rasm URL — boshqa saytdan rasm linkini qo&apos;ying.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Fayl yuklash zona */}
+                        <div
+                            onDragOver={(e) => { e.preventDefault(); setExcelDragOver(true); }}
+                            onDragLeave={() => setExcelDragOver(false)}
+                            onDrop={(e) => { e.preventDefault(); setExcelDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleExcelFileSelect(f); }}
+                            className={`border-2 border-dashed rounded-2xl p-10 text-center transition-all cursor-pointer ${
+                                excelDragOver
+                                    ? 'border-green-400 bg-green-400/10'
+                                    : excelFile
+                                        ? 'border-yellow-400/50 bg-yellow-400/5'
+                                        : 'border-[#2a2a2a] hover:border-green-400/50 bg-[#111]'
+                            }`}
+                            onClick={() => excelInputRef.current?.click()}
+                        >
+                            <input
+                                ref={excelInputRef}
+                                type="file"
+                                accept=".xlsx,.xls"
+                                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleExcelFileSelect(f); }}
+                                className="hidden"
+                            />
+                            {excelFile ? (
+                                <div className="flex flex-col items-center gap-2">
+                                    <FileSpreadsheet size={48} className="text-green-400" />
+                                    <p className="text-white font-bold">{excelFile.name}</p>
+                                    <p className="text-gray-500 text-sm">{(excelFile.size / 1024).toFixed(1)} KB</p>
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setExcelFile(null); setExcelResult(null); }}
+                                        className="text-red-400 text-xs hover:text-red-300 mt-1"
+                                    >Faylni olib tashlash</button>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center gap-3">
+                                    <Upload size={48} className="text-gray-600" />
+                                    <p className="text-gray-400 font-medium">Excel faylni shu yerga tashlang</p>
+                                    <p className="text-gray-600 text-sm">yoki bosib tanlang (.xlsx, .xls)</p>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Import tugmasi */}
+                        {excelFile && (
+                            <button
+                                onClick={handleExcelImport}
+                                disabled={excelImporting}
+                                className={`w-full flex items-center justify-center gap-3 font-bold py-4 rounded-2xl text-base transition-all ${
+                                    excelImporting
+                                        ? 'bg-gray-700 text-gray-400 cursor-not-allowed'
+                                        : 'bg-green-500 hover:bg-green-400 text-white'
+                                }`}
+                            >
+                                {excelImporting ? (
+                                    <><span className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> Import qilinmoqda...</>
+                                ) : (
+                                    <><Upload size={20} /> Import qilish ({excelFile.name})</>
+                                )}
+                            </button>
+                        )}
+
+                        {/* Natijalar */}
+                        {excelResult && !excelResult.error && (
+                            <div className="space-y-4">
+                                {/* Umumiy natija */}
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-5 text-center">
+                                        <p className="text-3xl font-extrabold text-white">{excelResult.total}</p>
+                                        <p className="text-gray-500 text-sm">Jami qatorlar</p>
+                                    </div>
+                                    <div className="bg-[#111] border border-green-500/30 rounded-2xl p-5 text-center">
+                                        <p className="text-3xl font-extrabold text-green-400">{excelResult.success}</p>
+                                        <p className="text-gray-500 text-sm">Muvaffaqiyatli</p>
+                                    </div>
+                                    <div className={`bg-[#111] border rounded-2xl p-5 text-center ${excelResult.errors > 0 ? 'border-red-500/30' : 'border-[#1e1e1e]'}`}>
+                                        <p className={`text-3xl font-extrabold ${excelResult.errors > 0 ? 'text-red-400' : 'text-gray-600'}`}>{excelResult.errors}</p>
+                                        <p className="text-gray-500 text-sm">Xatoliklar</p>
+                                    </div>
+                                </div>
+
+                                {/* Batafsil jadval */}
+                                {excelResult.details && excelResult.details.length > 0 && (
+                                    <div className="bg-[#111] border border-[#1e1e1e] rounded-2xl overflow-hidden">
+                                        <div className="px-5 py-3 border-b border-[#1e1e1e]">
+                                            <h3 className="text-white font-bold text-sm">📋 Batafsil natijalar</h3>
+                                        </div>
+                                        <div className="max-h-[400px] overflow-y-auto">
+                                            <table className="w-full text-sm">
+                                                <thead className="bg-[#0a0a0a] sticky top-0">
+                                                    <tr>
+                                                        <th className="text-left text-gray-500 px-5 py-2 font-medium">Qator</th>
+                                                        <th className="text-left text-gray-500 px-5 py-2 font-medium">Mahsulot</th>
+                                                        <th className="text-left text-gray-500 px-5 py-2 font-medium">Holat</th>
+                                                        <th className="text-left text-gray-500 px-5 py-2 font-medium">Izoh</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {excelResult.details.map((d: any, i: number) => (
+                                                        <tr key={i} className={`border-t border-[#1a1a1a] ${d.status === 'error' ? 'bg-red-500/5' : ''}`}>
+                                                            <td className="px-5 py-2.5 text-gray-400 font-mono">{d.row}</td>
+                                                            <td className="px-5 py-2.5 text-white">{d.name}</td>
+                                                            <td className="px-5 py-2.5">
+                                                                {d.status === 'success' ? (
+                                                                    <span className="bg-green-500/20 text-green-400 text-xs font-bold px-2 py-1 rounded-lg">✅ OK</span>
+                                                                ) : (
+                                                                    <span className="bg-red-500/20 text-red-400 text-xs font-bold px-2 py-1 rounded-lg">❌ Xato</span>
+                                                                )}
+                                                            </td>
+                                                            <td className={`px-5 py-2.5 text-sm ${d.status === 'error' ? 'text-red-400' : 'text-gray-500'}`}>{d.message}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* Xatolik */}
+                        {excelResult?.error && (
+                            <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-5 flex items-start gap-3">
+                                <AlertCircle size={20} className="text-red-400 mt-0.5 shrink-0" />
+                                <div>
+                                    <p className="text-red-400 font-bold text-sm">Import xatosi</p>
+                                    <p className="text-red-400/70 text-sm mt-1">{excelResult.error}</p>
+                                </div>
                             </div>
                         )}
                     </div>

@@ -28,45 +28,75 @@ export async function POST(req: Request) {
     const results = {
       success: 0,
       errors: 0,
-      details: [] as string[]
+      total: data.length,
+      details: [] as { row: number; status: 'success' | 'error'; message: string; name?: string }[]
     };
 
     // Process rows
-    for (const row of data) {
-      try {
-        const title_uz = row.title_uz || row['Mahsulot nomi'] || row['Nomi'];
-        const price = parseFloat(row.price || row['Narxi'] || 0);
-        const available = row.available === true || row.available === 1 || row['Mavjudligi'] === 'Ha';
-        const weight = row.weight || row['Vazni'] || '';
-        const category_name = row.category_name || row['Kategoriya'] || 'Boshqa';
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const rowNum = i + 2; // Excel qator raqami (1-qator sarlavha)
 
-        if (!title_uz) {
+      try {
+        // Turli ustun nomlarini qo'llab-quvvatlash
+        const title_uz = row.name || row.title_uz || row['Mahsulot nomi'] || row['Nomi'] || row['name'] || '';
+        const price = parseFloat(row.price || row['Narxi'] || row['narx'] || row['Price'] || 0);
+        const category_name = row.category || row.category_name || row['Kategoriya'] || row['kategoriya'] || row['Category'] || 'Boshqa';
+        const image = row.image_url || row.image || row['Rasm URL'] || row['rasm'] || row['Image'] || '';
+        const brand = row.brand || row['Brend'] || row['Brand'] || '';
+        const weight = row.weight || row['Vazni'] || row['Weight'] || '';
+        const description = row.description || row['Tavsifi'] || row['tavsif'] || row['Description'] || '';
+
+        // Validatsiya
+        if (!title_uz || !String(title_uz).trim()) {
           throw new Error('Mahsulot nomi kiritilmagan');
+        }
+        if (!price || isNaN(price) || price <= 0) {
+          throw new Error('Narx noto\'g\'ri yoki kiritilmagan');
         }
 
         // Auto-create category
+        const catName = String(category_name).trim();
         await prisma.category.upsert({
-          where: { name: category_name },
+          where: { name: catName },
           update: {},
-          create: { name: category_name },
+          create: { 
+            name: catName,
+            slug: catName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''),
+          },
         });
 
-        // Create or update product
+        // Create product
         await prisma.product.create({
           data: {
-            title_uz,
+            title_uz: String(title_uz).trim(),
+            name: String(title_uz).trim(),
             price,
-            available,
-            weight,
-            category_name,
+            category_name: catName,
+            image: image ? String(image).trim() : null,
+            brand: brand ? String(brand).trim() : null,
+            weight: weight ? String(weight).trim() : null,
+            available: true,
+            inStock: true,
           },
         });
 
         results.success++;
+        results.details.push({
+          row: rowNum,
+          status: 'success',
+          message: 'Muvaffaqiyatli qo\'shildi',
+          name: String(title_uz).trim(),
+        });
       } catch (err: any) {
         results.errors++;
-        results.details.push(`Qator xatoligi: ${err.message}`);
-        console.error('Import row error:', err);
+        results.details.push({
+          row: rowNum,
+          status: 'error',
+          message: err.message || 'Noma\'lum xato',
+          name: row.name || row.title_uz || row['Mahsulot nomi'] || `Qator ${rowNum}`,
+        });
+        console.error(`Import row ${rowNum} error:`, err);
       }
     }
 
