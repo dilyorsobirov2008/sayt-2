@@ -29,7 +29,8 @@ function createPrismaClient(): PrismaClient {
 
   try {
     const pool = new Pool({ connectionString });
-    const adapter = new PrismaNeon(pool);
+    // "as any" is added here to bypass the strict type mismatch between @neondatabase/serverless versions
+    const adapter = new PrismaNeon(pool as any);
     return new PrismaClient({ adapter } as any);
   } catch (error) {
     console.error('❌ Prisma client yaratishda xato:', error);
