@@ -16,7 +16,7 @@ export function MobileNav() {
         { href: '/catalog', label: t.nav.catalog, icon: LayoutGrid },
         { href: '/cart', label: t.nav.cart, icon: ShoppingCart, badge: count },
         { href: '/favorites', label: t.nav.favorites, icon: Heart },
-        { href: '/login', label: lang === 'uz' ? 'Admin' : 'Админ', icon: User },
+        { href: '/profile', label: lang === 'uz' ? 'Profil' : 'Профиль', icon: User },
     ];
 
     return (

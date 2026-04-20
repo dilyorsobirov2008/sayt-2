@@ -2,12 +2,15 @@
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import { uz, ru } from '@/lib/i18n';
 import { formatPrice } from '@/lib/utils';
-import { ShoppingCart, Heart, Star, ArrowLeft, CheckCircle, XCircle, MessageSquare, Send } from 'lucide-react';
+import { ShoppingCart, Heart, Star, ArrowLeft, CheckCircle, XCircle, Send, ChevronLeft, ChevronRight, LogIn } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
+
+interface Variant { id: number; color: string; colorName: string; colorNameRu: string | null; image: string | null; }
+interface Review { id: number; userName: string; rating: number; comment: string; createdAt: string; }
 
 export default function ProductPage() {
     const { id } = useParams();
@@ -17,9 +20,59 @@ export default function ProductPage() {
     const product = products.find(p => p.id === Number(id));
 
     const [selectedPlanId, setSelectedPlanId] = useState<number | null>(null);
-    const [reviewName, setReviewName] = useState('');
+
+    // Gallery
+    const [images, setImages] = useState<string[]>([]);
+    const [activeImg, setActiveImg] = useState(0);
+
+    // Variants
+    const [variants, setVariants] = useState<Variant[]>([]);
+    const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+
+    // Reviews
+    const [reviews, setReviews] = useState<Review[]>([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
     const [reviewText, setReviewText] = useState('');
     const [reviewRating, setReviewRating] = useState(5);
+    const [hoverRating, setHoverRating] = useState(0);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+
+    // Auth
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [userId, setUserId] = useState<string | null>(null);
+    const [userName, setUserName] = useState('');
+
+    useEffect(() => {
+        setIsLoggedIn(localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true');
+        setUserId(localStorage.getItem('user_id'));
+        setUserName(localStorage.getItem('user_name') || '');
+    }, []);
+
+    useEffect(() => {
+        if (!id) return;
+        fetch(`/api/products/${id}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.product) {
+                    const imgs = data.product.images?.length ? data.product.images : [data.product.image];
+                    setImages(imgs);
+                    setVariants(data.product.variants || []);
+                }
+            }).catch(() => {});
+
+        setReviewsLoading(true);
+        fetch(`/api/reviews?productId=${id}`)
+            .then(r => r.json())
+            .then(data => { setReviews(data.reviews || []); setReviewsLoading(false); })
+            .catch(() => setReviewsLoading(false));
+    }, [id]);
+
+    useEffect(() => {
+        if (product && images.length === 0) {
+            setImages((product as any).images?.length ? (product as any).images : [product.image]);
+        }
+    }, [product]);
 
     if (!product) return (
         <div className="min-h-screen flex items-center justify-center">
@@ -33,25 +86,33 @@ export default function ProductPage() {
 
     const fav = isFavorite(product.id);
     const activePlans = installmentPlans.filter(p => p.isActive).sort((a, b) => a.months - b.months);
+    const selectedPlan = selectedPlanId ? activePlans.find(p => p.id === selectedPlanId) : activePlans[0] ?? null;
+    const calcPlanPrice = (price: number, pct: number) => Math.ceil(price * (1 + pct / 100));
+    const calcMonthly = (price: number, months: number, pct: number) => Math.ceil(calcPlanPrice(price, pct) / months);
+    const similarProducts = products.filter(p => p.category === product.category && p.id !== product.id && p.inStock).slice(0, 5);
+    const currentImage = selectedVariant?.image || images[activeImg] || product.image;
 
-    // Tanlangan plan
-    const selectedPlan = selectedPlanId
-        ? activePlans.find(p => p.id === selectedPlanId)
-        : activePlans.length > 0 ? activePlans[0] : null;
-
-    // Bo'lib to'lash narxini hisoblash
-    const calcPlanPrice = (price: number, interestPercent: number) => {
-        return Math.ceil(price * (1 + interestPercent / 100));
+    const handleReviewSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!reviewText.trim()) return;
+        setSubmitting(true);
+        try {
+            const res = await fetch('/api/reviews', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ productId: product.id, userId, userName, rating: reviewRating, comment: reviewText }),
+            });
+            if (res.ok) {
+                const newReview = await res.json();
+                setReviews(prev => [newReview, ...prev]);
+                setReviewText('');
+                setReviewRating(5);
+                setSubmitSuccess(true);
+                setTimeout(() => setSubmitSuccess(false), 3000);
+            }
+        } catch (err) { console.error(err); }
+        setSubmitting(false);
     };
-
-    const calcPlanMonthly = (price: number, months: number, interestPercent: number) => {
-        return Math.ceil(calcPlanPrice(price, interestPercent) / months);
-    };
-
-    // Similar Products
-    const similarProducts = products
-        .filter(p => p.category === product.category && p.id !== product.id && p.inStock)
-        .slice(0, 5);
 
     return (
         <div className="max-w-5xl mx-auto px-4 py-6 pb-20">
@@ -59,24 +120,44 @@ export default function ProductPage() {
                 <ArrowLeft size={16} /> {lang === 'uz' ? "Katalogga qaytish" : "Назад в каталог"}
             </Link>
 
-            {/* PRODUCT MAIN INFO */}
             <div className="grid md:grid-cols-2 gap-8 mb-16">
-                {/* Image */}
-                <div className="relative bg-white rounded-2xl aspect-square overflow-hidden border border-gray-100 p-4">
-                    <Image src={product.image} alt={product.name} fill className="object-contain p-4" priority unoptimized />
-                    {product.isNew && (
-                        <span className="absolute top-4 left-4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full">
-                            {t.product.new}
-                        </span>
-                    )}
-                    {product.discountPercent && (
-                        <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                            -{product.discountPercent}%
-                        </span>
+                {/* ═══ IMAGE GALLERY ═══ */}
+                <div>
+                    <div className="relative bg-white rounded-2xl aspect-square overflow-hidden border border-gray-100 p-4 mb-3">
+                        <Image src={currentImage} alt={product.name} fill className="object-contain p-4" priority unoptimized />
+                        {product.isNew && (
+                            <span className="absolute top-4 left-4 bg-yellow-400 text-black text-xs font-bold px-3 py-1 rounded-full">{t.product.new}</span>
+                        )}
+                        {product.discountPercent && (
+                            <span className="absolute top-4 right-4 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">-{product.discountPercent}%</span>
+                        )}
+                        {images.length > 1 && !selectedVariant && (
+                            <>
+                                <button onClick={() => setActiveImg(prev => (prev - 1 + images.length) % images.length)}
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors">
+                                    <ChevronLeft size={16} />
+                                </button>
+                                <button onClick={() => setActiveImg(prev => (prev + 1) % images.length)}
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow hover:bg-white transition-colors">
+                                    <ChevronRight size={16} />
+                                </button>
+                            </>
+                        )}
+                    </div>
+                    {/* Thumbnails */}
+                    {images.length > 1 && (
+                        <div className="flex gap-2 flex-wrap">
+                            {images.map((img, idx) => (
+                                <button key={idx} onClick={() => { setActiveImg(idx); setSelectedVariant(null); }}
+                                    className={`relative w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${activeImg === idx && !selectedVariant ? 'border-yellow-400' : 'border-gray-200 hover:border-yellow-300'}`}>
+                                    <Image src={img} alt={`${product.name} ${idx + 1}`} fill className="object-contain p-1" unoptimized />
+                                </button>
+                            ))}
+                        </div>
                     )}
                 </div>
 
-                {/* Info */}
+                {/* ═══ INFO ═══ */}
                 <div className="flex flex-col gap-5">
                     <div>
                         <span className="text-xs text-yellow-600 font-bold uppercase tracking-wider">{product.brand}</span>
@@ -87,125 +168,97 @@ export default function ProductPage() {
                                     <Star key={i} size={16} className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
                                 ))}
                             </div>
-                            <span className="text-sm font-semibold text-gray-700">{product.rating} <span className="text-gray-400 font-normal">({product.reviewCount} sharh)</span></span>
+                            <span className="text-sm font-semibold text-gray-700">{product.rating} <span className="text-gray-400 font-normal">({reviews.length > 0 ? reviews.length : product.reviewCount} sharh)</span></span>
                         </div>
                     </div>
 
-                    {/* Stock */}
                     <div className="flex items-center gap-2 bg-gray-50 w-fit px-3 py-1.5 rounded-lg border border-gray-100">
                         {product.inStock
                             ? <><CheckCircle size={14} className="text-green-500" /><span className="text-green-600 text-xs font-bold uppercase">{t.product.inStock}</span></>
                             : <><XCircle size={14} className="text-red-500" /><span className="text-red-500 text-xs font-bold uppercase">{t.product.outOfStock}</span></>}
                     </div>
 
-                    {/* Prices */}
                     <div>
                         <p className="text-4xl font-extrabold text-gray-900 tracking-tight">{formatPrice(product.price)}</p>
                         {product.discountPercent && product.discountPercent > 0 && (
-                            <p className="text-gray-400 line-through text-sm mt-1">
-                                {formatPrice(Math.ceil(product.price / (1 - product.discountPercent / 100)))}
-                            </p>
+                            <p className="text-gray-400 line-through text-sm mt-1">{formatPrice(Math.ceil(product.price / (1 - product.discountPercent / 100)))}</p>
                         )}
                     </div>
 
-                    {/* ═══ BO'LIB TO'LASH REJALAR ═══ */}
+                    {/* ═══ COLOR VARIANTS ═══ */}
+                    {variants.length > 0 && (
+                        <div>
+                            <p className="text-sm font-bold text-gray-800 mb-2">
+                                {lang === 'uz' ? 'Rang tanlang:' : 'Выберите цвет:'}
+                                {selectedVariant && <span className="ml-2 font-normal text-gray-500">{lang === 'uz' ? selectedVariant.colorName : (selectedVariant.colorNameRu || selectedVariant.colorName)}</span>}
+                            </p>
+                            <div className="flex gap-2 flex-wrap">
+                                {variants.map(v => (
+                                    <button key={v.id}
+                                        onClick={() => setSelectedVariant(selectedVariant?.id === v.id ? null : v)}
+                                        title={lang === 'uz' ? v.colorName : (v.colorNameRu || v.colorName)}
+                                        className={`w-9 h-9 rounded-full border-4 transition-all ${selectedVariant?.id === v.id ? 'border-yellow-400 scale-110 shadow-md' : 'border-gray-200 hover:border-gray-400'}`}
+                                        style={{ backgroundColor: v.color }} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ═══ INSTALLMENT PLANS ═══ */}
                     {activePlans.length > 0 && (
                         <div className="bg-gradient-to-br from-yellow-50 to-orange-50 border border-yellow-300 rounded-2xl p-5 relative overflow-hidden">
                             <div className="absolute top-0 right-0 bg-yellow-400 text-black text-[10px] font-extrabold px-3 py-1 rounded-bl-lg">
                                 💳 {lang === 'uz' ? "Bo'lib to'lash" : "Рассрочка"}
                             </div>
-                            <p className="text-sm font-bold text-gray-800 mb-3 mt-1">
-                                {lang === 'uz' ? "Muddatni tanlang:" : "Выберите срок:"}
-                            </p>
-
-                            {/* Plan selection buttons */}
+                            <p className="text-sm font-bold text-gray-800 mb-3 mt-1">{lang === 'uz' ? "Muddatni tanlang:" : "Выберите срок:"}</p>
                             <div className="flex flex-wrap gap-2 mb-4">
                                 {activePlans.map(plan => {
-                                    const isSelected = selectedPlan?.id === plan.id;
-                                    const monthly = calcPlanMonthly(product.price, plan.months, plan.interestPercent);
+                                    const isSel = selectedPlan?.id === plan.id;
                                     return (
-                                        <button
-                                            key={plan.id}
-                                            onClick={() => setSelectedPlanId(plan.id)}
-                                            className={`flex flex-col items-center px-4 py-3 rounded-xl border-2 transition-all ${isSelected
-                                                ? 'border-yellow-400 bg-yellow-400/20 shadow-sm scale-[1.02]'
-                                                : 'border-gray-200 bg-white hover:border-yellow-300'
-                                                }`}
-                                        >
-                                            <span className={`text-lg font-extrabold ${isSelected ? 'text-yellow-700' : 'text-gray-700'}`}>
-                                                {plan.months}
-                                            </span>
+                                        <button key={plan.id} onClick={() => setSelectedPlanId(plan.id)}
+                                            className={`flex flex-col items-center px-4 py-3 rounded-xl border-2 transition-all ${isSel ? 'border-yellow-400 bg-yellow-400/20 shadow-sm scale-[1.02]' : 'border-gray-200 bg-white hover:border-yellow-300'}`}>
+                                            <span className={`text-lg font-extrabold ${isSel ? 'text-yellow-700' : 'text-gray-700'}`}>{plan.months}</span>
                                             <span className="text-[10px] text-gray-500 -mt-0.5">{lang === 'uz' ? 'oy' : 'мес'}</span>
-                                            <span className={`text-[10px] font-bold mt-1 px-1.5 py-0.5 rounded ${plan.interestPercent === 0
-                                                ? 'bg-green-100 text-green-600'
-                                                : 'bg-blue-100 text-blue-600'
-                                                }`}>
+                                            <span className={`text-[10px] font-bold mt-1 px-1.5 py-0.5 rounded ${plan.interestPercent === 0 ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
                                                 {plan.interestPercent === 0 ? '0%' : `+${plan.interestPercent}%`}
                                             </span>
                                         </button>
                                     );
                                 })}
                             </div>
-
-                            {/* Selected plan details */}
                             {selectedPlan && (
                                 <div className="bg-white rounded-xl p-4 border border-yellow-200">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-sm text-gray-600">
-                                            {lang === 'uz' ? 'Oylik to\'lov:' : 'Ежемесячный платеж:'}
-                                        </span>
-                                        <span className="text-2xl font-extrabold text-yellow-600">
-                                            {formatPrice(calcPlanMonthly(product.price, selectedPlan.months, selectedPlan.interestPercent))}
-                                            <span className="text-sm font-normal text-gray-400">/{lang === 'uz' ? 'oy' : 'мес'}</span>
-                                        </span>
+                                        <span className="text-sm text-gray-600">{lang === 'uz' ? "Oylik to'lov:" : 'Ежемесячный платеж:'}</span>
+                                        <span className="text-2xl font-extrabold text-yellow-600">{formatPrice(calcMonthly(product.price, selectedPlan.months, selectedPlan.interestPercent))}<span className="text-sm font-normal text-gray-400">/{lang === 'uz' ? 'oy' : 'мес'}</span></span>
                                     </div>
                                     {selectedPlan.interestPercent > 0 && (
                                         <div className="flex items-center justify-between text-xs">
                                             <span className="text-gray-500">{lang === 'uz' ? 'Jami kredit narxi:' : 'Итого в кредит:'}</span>
-                                            <span className="text-blue-600 font-bold">
-                                                {formatPrice(calcPlanPrice(product.price, selectedPlan.interestPercent))}
-                                                <span className="text-orange-500 ml-1">(+{selectedPlan.interestPercent}%)</span>
-                                            </span>
+                                            <span className="text-blue-600 font-bold">{formatPrice(calcPlanPrice(product.price, selectedPlan.interestPercent))}<span className="text-orange-500 ml-1">(+{selectedPlan.interestPercent}%)</span></span>
                                         </div>
                                     )}
-                                    {selectedPlan.interestPercent === 0 && (
-                                        <p className="text-xs text-green-600 font-semibold">✅ {lang === 'uz' ? 'Foizsiz bo\'lib to\'lash!' : 'Без процентов!'}</p>
-                                    )}
+                                    {selectedPlan.interestPercent === 0 && <p className="text-xs text-green-600 font-semibold">✅ {lang === 'uz' ? "Foizsiz bo'lib to'lash!" : 'Без процентов!'}</p>}
                                 </div>
                             )}
-
                             <div className="flex items-center gap-2 mt-3 flex-wrap">
                                 <span className="text-xs text-gray-500 font-medium">{lang === 'uz' ? 'orqali:' : 'через:'}</span>
                                 <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#FFD600] font-black text-black text-sm shadow-sm">U</span>
-                                <svg width="48" height="24" viewBox="0 0 44 20" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="44" height="20" rx="4" fill="#1565C0" />
-                                    <text x="50%" y="14" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">CLICK</text>
-                                </svg>
-                                <svg width="54" height="24" viewBox="0 0 50 20" xmlns="http://www.w3.org/2000/svg">
-                                    <rect width="50" height="20" rx="4" fill="#00AAFF" />
-                                    <text x="50%" y="14" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">Payme</text>
-                                </svg>
+                                <svg width="48" height="24" viewBox="0 0 44 20"><rect width="44" height="20" rx="4" fill="#1565C0" /><text x="50%" y="14" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">CLICK</text></svg>
+                                <svg width="54" height="24" viewBox="0 0 50 20"><rect width="50" height="20" rx="4" fill="#00AAFF" /><text x="50%" y="14" textAnchor="middle" fill="white" fontSize="10" fontWeight="bold" fontFamily="Arial">Payme</text></svg>
                             </div>
                         </div>
                     )}
 
-                    {/* Cart + Favorite */}
+                    {/* Cart + Fav */}
                     <div className="flex gap-3 mt-2">
-                        <button
-                            onClick={() => {
-                                useStore.getState().clearCart();
-                                addToCart(product);
-                                router.push('/cart?direct=1');
-                            }}
+                        <button onClick={() => { useStore.getState().clearCart(); addToCart(product); router.push('/cart?direct=1'); }}
                             disabled={!product.inStock}
-                            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-extrabold text-base transition-all active:scale-95 ${product.inStock ? 'bg-yellow-400 hover:bg-yellow-500 text-black shadow-sm' : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                }`}>
-                            <ShoppingCart size={20} />
-                            {lang === 'uz' ? 'Hoziroq xarid qilish' : 'Купить сейчас'}
+                            className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-extrabold text-base transition-all active:scale-95 ${product.inStock ? 'bg-yellow-400 hover:bg-yellow-500 text-black shadow-sm' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
+                            <ShoppingCart size={20} />{lang === 'uz' ? 'Hoziroq xarid qilish' : 'Купить сейчас'}
                         </button>
                         <button onClick={() => toggleFavorite(product.id)}
-                            className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-all ${fav ? 'bg-red-50 text-red-500 shadow-sm border border-red-100' : 'bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'
-                                }`}>
+                            className={`w-14 h-14 shrink-0 rounded-2xl flex items-center justify-center transition-all ${fav ? 'bg-red-50 text-red-500 shadow-sm border border-red-100' : 'bg-white border border-gray-200 text-gray-400 hover:text-red-500 hover:border-red-200'}`}>
                             <Heart size={22} fill={fav ? 'currentColor' : 'none'} />
                         </button>
                     </div>
@@ -219,7 +272,7 @@ export default function ProductPage() {
                             {Object.entries(product.specs).map(([key, val], idx, arr) => (
                                 <div key={key} className={`flex justify-between px-5 py-3 bg-white text-sm ${idx !== arr.length - 1 ? 'border-b border-gray-100' : ''}`}>
                                     <span className="text-gray-500">{key}</span>
-                                    <span className="font-semibold text-gray-900 text-right">{val}</span>
+                                    <span className="font-semibold text-gray-900 text-right">{val as string}</span>
                                 </div>
                             ))}
                         </div>
@@ -227,19 +280,90 @@ export default function ProductPage() {
                 </div>
             </div>
 
-            {/* SIMILAR PRODUCTS */}
+            {/* ═══ REVIEWS ═══ */}
+            <div className="mb-16">
+                <h2 className="text-2xl font-extrabold text-gray-900 mb-6">
+                    {lang === 'uz' ? 'Sharhlar' : 'Отзывы'}
+                    {reviews.length > 0 && <span className="ml-2 text-base font-normal text-gray-400">({reviews.length})</span>}
+                </h2>
+
+                {isLoggedIn ? (
+                    <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6 shadow-sm">
+                        <h3 className="font-bold text-gray-800 mb-4">{lang === 'uz' ? 'Sharh qoldiring' : 'Оставить отзыв'}</h3>
+                        <form onSubmit={handleReviewSubmit} className="space-y-4">
+                            <div>
+                                <p className="text-sm text-gray-600 mb-2">{lang === 'uz' ? 'Baholang:' : 'Оценка:'}</p>
+                                <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map(star => (
+                                        <button key={star} type="button"
+                                            onClick={() => setReviewRating(star)}
+                                            onMouseEnter={() => setHoverRating(star)}
+                                            onMouseLeave={() => setHoverRating(0)}
+                                            className="transition-transform hover:scale-110">
+                                            <Star size={28} className={star <= (hoverRating || reviewRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <textarea value={reviewText} onChange={e => setReviewText(e.target.value)}
+                                placeholder={lang === 'uz' ? 'Fikringizni yozing...' : 'Напишите ваш отзыв...'}
+                                rows={3} required
+                                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-yellow-400 transition-colors resize-none bg-gray-50 focus:bg-white" />
+                            {submitSuccess && <p className="text-green-600 text-sm font-medium">✅ {lang === 'uz' ? "Sharhingiz qo'shildi!" : 'Ваш отзыв добавлен!'}</p>}
+                            <button type="submit" disabled={submitting || !reviewText.trim()}
+                                className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-100 disabled:text-gray-400 text-black font-bold px-6 py-3 rounded-xl transition-all active:scale-95">
+                                <Send size={16} />
+                                {submitting ? (lang === 'uz' ? 'Yuborilmoqda...' : 'Отправка...') : (lang === 'uz' ? 'Sharh yuborish' : 'Отправить')}
+                            </button>
+                        </form>
+                    </div>
+                ) : (
+                    <div className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-6 mb-6 text-center">
+                        <p className="text-gray-500 mb-3 text-sm">{lang === 'uz' ? 'Sharh yozish uchun hisobingizga kiring' : 'Войдите в аккаунт, чтобы оставить отзыв'}</p>
+                        <Link href="/login" className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
+                            <LogIn size={15} />{lang === 'uz' ? 'Kirish' : 'Войти'}
+                        </Link>
+                    </div>
+                )}
+
+                {reviewsLoading ? (
+                    <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" /></div>
+                ) : reviews.length === 0 ? (
+                    <div className="text-center py-10 text-gray-400">
+                        <p className="text-4xl mb-3">💬</p>
+                        <p>{lang === 'uz' ? "Hali sharhlar yo'q. Birinchi bo'ling!" : 'Отзывов пока нет. Будьте первым!'}</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {reviews.map(r => (
+                            <div key={r.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                                <div className="flex items-start justify-between mb-2">
+                                    <div>
+                                        <span className="font-bold text-gray-900">{r.userName}</span>
+                                        <div className="flex gap-0.5 mt-1">
+                                            {[1, 2, 3, 4, 5].map(s => (
+                                                <Star key={s} size={13} className={s <= r.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString(lang === 'uz' ? 'uz-UZ' : 'ru-RU')}</span>
+                                </div>
+                                <p className="text-sm text-gray-700 leading-relaxed">{r.comment}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Similar */}
             {similarProducts.length > 0 && (
                 <div>
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-extrabold text-gray-900">{lang === 'uz' ? 'Bunga o\'xshash mahsulotlar' : 'Похожие товары'}</h2>
-                        <Link href={`/catalog?category=${product.category}`} className="text-yellow-600 font-semibold text-sm hover:underline">
-                            {lang === 'uz' ? 'Barchasi' : 'Все'}
-                        </Link>
+                        <h2 className="text-2xl font-extrabold text-gray-900">{lang === 'uz' ? "Bunga o'xshash mahsulotlar" : 'Похожие товары'}</h2>
+                        <Link href={`/catalog?category=${product.category}`} className="text-yellow-600 font-semibold text-sm hover:underline">{lang === 'uz' ? 'Barchasi' : 'Все'}</Link>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                        {similarProducts.map(p => (
-                            <ProductCard key={p.id} product={p} />
-                        ))}
+                        {similarProducts.map(p => <ProductCard key={p.id} product={p} />)}
                     </div>
                 </div>
             )}

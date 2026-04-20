@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useStore } from '@/lib/store';
 import { uz, ru } from '@/lib/i18n';
-import { Search, ShoppingCart, Heart, ChevronDown, LayoutGrid } from 'lucide-react';
+import { Search, ShoppingCart, Heart, ChevronDown, LayoutGrid, User } from 'lucide-react';
 import { MegaMenu } from './MegaMenu';
 
 export function Header() {
@@ -131,6 +131,12 @@ export function Header() {
                                 )}
                             </span>
                             <span className="text-[10px] font-medium">{lang === 'uz' ? 'Savatcha' : 'Корзина'}</span>
+                        </Link>
+
+                        {/* Profile */}
+                        <Link href="/profile" className="flex flex-col items-center gap-0.5 text-gray-600 hover:text-black transition-colors">
+                            <User size={22} strokeWidth={1.8} />
+                            <span className="text-[10px] font-medium">{lang === 'uz' ? 'Profil' : 'Профиль'}</span>
                         </Link>
                     </div>
                 </div>

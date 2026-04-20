@@ -47,10 +47,9 @@ export default function ProfilePage() {
             {/* Menu links */}
             <div className="space-y-2 mb-4">
                 {[
-                    { icon: ShoppingBag, label: lang === 'uz' ? 'Buyurtmalarim' : 'Мои заказы', href: '#', badge: null },
+                    { icon: ShoppingBag, label: lang === 'uz' ? 'Buyurtmalarim' : 'Мои заказы', href: '#orders', badge: null },
                     { icon: Heart, label: lang === 'uz' ? 'Sevimlilar' : 'Избранное', href: '/favorites', badge: favorites.length || null },
                     { icon: ShoppingBag, label: lang === 'uz' ? 'Savatcha' : 'Корзина', href: '/cart', badge: cartCount || null },
-                    { icon: Settings, label: lang === 'uz' ? 'Sozlamalar' : 'Настройки', href: '#', badge: null },
                 ].map(({ icon: Icon, label, href, badge }) => (
                     <Link key={label} href={href}
                         className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl px-5 py-4 hover:border-yellow-300 hover:bg-yellow-50 transition-all group">
@@ -63,6 +62,7 @@ export default function ProfilePage() {
                     </Link>
                 ))}
             </div>
+
 
             {/* Auth block */}
             {isAdmin ? (
