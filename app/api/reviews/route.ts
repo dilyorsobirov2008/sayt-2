@@ -1,53 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(req: NextRequest) {
-  try {
-    const { searchParams } = new URL(req.url);
-    const productId = searchParams.get('productId');
-    if (!productId) return NextResponse.json({ reviews: [] });
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8516821604:AAEW4IT9CXtB6R9hcoeRcnsJygCVzQ-IhOo';
+const CHANNEL_ID = '-1003134184077';
+const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
-    const reviews = await prisma.review.findMany({
-      where: { productId: parseInt(productId) },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return NextResponse.json({ reviews });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message, reviews: [] }, { status: 500 });
-  }
+export async function GET() {
+  // Sharhlar endi DB da saqlanmaydi
+  return NextResponse.json({ reviews: [] });
 }
 
 export async function POST(req: NextRequest) {
   try {
-    const { productId, userId, userName, rating, comment } = await req.json();
+    const { productId, productName, userName, rating, comment } = await req.json();
 
-    if (!productId || !userName || !rating || !comment) {
-      return NextResponse.json({ error: "Barcha maydonlarni to'ldiring" }, { status: 400 });
+    if (!rating) {
+      return NextResponse.json({ error: "Baholash kerak" }, { status: 400 });
     }
 
-    const review = await prisma.review.create({
-      data: {
-        productId: parseInt(productId),
-        userId: userId ? parseInt(userId) : null,
-        userName,
-        rating: parseInt(rating),
-        comment,
-      },
+    const ratingNum = Math.max(1, Math.min(5, parseInt(rating)));
+    const stars = '⭐'.repeat(ratingNum);
+    const emptyStars = '☆'.repeat(5 - ratingNum);
+
+    const message = `💬 <b>YANGI SHARH!</b>
+
+🛍 <b>Mahsulot:</b> ${productName || `#${productId}`}
+👤 <b>Foydalanuvchi:</b> ${userName || 'Anonim'}
+${stars}${emptyStars} <b>(${ratingNum}/5)</b>
+
+📝 <i>${comment || '—'}</i>
+
+⏰ ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}`;
+
+    const tgRes = await fetch(`${TELEGRAM_API}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: CHANNEL_ID,
+        text: message,
+        parse_mode: 'HTML',
+      }),
     });
 
-    // Update product rating average
-    const allReviews = await prisma.review.findMany({ where: { productId: parseInt(productId) } });
-    const avgRating = allReviews.reduce((s: number, r: any) => s + r.rating, 0) / allReviews.length;
-    await prisma.product.update({
-      where: { id: parseInt(productId) },
-      data: { rating: Math.round(avgRating * 10) / 10, reviewCount: allReviews.length },
-    });
+    const tgData = await tgRes.json();
 
-    return NextResponse.json(review);
+    if (!tgData.ok) {
+      console.error('Telegram channel error:', tgData);
+      return NextResponse.json({ error: tgData.description || 'TG xatosi' }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true });
   } catch (error: any) {
+    console.error('Review error:', error);
     return NextResponse.json({ error: error.message || 'Xatolik yuz berdi' }, { status: 500 });
   }
 }

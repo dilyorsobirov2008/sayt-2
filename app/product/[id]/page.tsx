@@ -94,21 +94,25 @@ export default function ProductPage() {
 
     const handleReviewSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!reviewText.trim()) return;
         setSubmitting(true);
         try {
             const res = await fetch('/api/reviews', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: product.id, userId, userName, rating: reviewRating, comment: reviewText }),
+                body: JSON.stringify({
+                    productId: product.id,
+                    productName: product.name,
+                    userId,
+                    userName: userName || (lang === 'uz' ? 'Anonim' : 'Аноним'),
+                    rating: reviewRating,
+                    comment: reviewText,
+                }),
             });
             if (res.ok) {
-                const newReview = await res.json();
-                setReviews(prev => [newReview, ...prev]);
                 setReviewText('');
                 setReviewRating(5);
                 setSubmitSuccess(true);
-                setTimeout(() => setSubmitSuccess(false), 3000);
+                setTimeout(() => setSubmitSuccess(false), 4000);
             }
         } catch (err) { console.error(err); }
         setSubmitting(false);
@@ -283,13 +287,21 @@ export default function ProductPage() {
             {/* ═══ REVIEWS ═══ */}
             <div className="mb-16">
                 <h2 className="text-2xl font-extrabold text-gray-900 mb-6">
-                    {lang === 'uz' ? 'Sharhlar' : 'Отзывы'}
-                    {reviews.length > 0 && <span className="ml-2 text-base font-normal text-gray-400">({reviews.length})</span>}
+                    {lang === 'uz' ? 'Sharh qoldiring' : 'Оставить отзыв'}
                 </h2>
 
-                {isLoggedIn ? (
-                    <div className="bg-white border border-gray-100 rounded-2xl p-6 mb-6 shadow-sm">
-                        <h3 className="font-bold text-gray-800 mb-4">{lang === 'uz' ? 'Sharh qoldiring' : 'Оставить отзыв'}</h3>
+                {submitSuccess ? (
+                    <div className="bg-green-50 border border-green-200 rounded-2xl p-6 text-center">
+                        <p className="text-4xl mb-3">✅</p>
+                        <p className="font-bold text-green-700 text-lg">
+                            {lang === 'uz' ? 'Sharhingiz yuborildi!' : 'Ваш отзыв отправлен!'}
+                        </p>
+                        <p className="text-sm text-green-600 mt-1">
+                            {lang === 'uz' ? 'Rahmat! Fikringiz qabul qilindi.' : 'Спасибо! Ваше мнение принято.'}
+                        </p>
+                    </div>
+                ) : (
+                    <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                         <form onSubmit={handleReviewSubmit} className="space-y-4">
                             <div>
                                 <p className="text-sm text-gray-600 mb-2">{lang === 'uz' ? 'Baholang:' : 'Оценка:'}</p>
@@ -300,57 +312,21 @@ export default function ProductPage() {
                                             onMouseEnter={() => setHoverRating(star)}
                                             onMouseLeave={() => setHoverRating(0)}
                                             className="transition-transform hover:scale-110">
-                                            <Star size={28} className={star <= (hoverRating || reviewRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
+                                            <Star size={32} className={star <= (hoverRating || reviewRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
                                         </button>
                                     ))}
                                 </div>
                             </div>
                             <textarea value={reviewText} onChange={e => setReviewText(e.target.value)}
                                 placeholder={lang === 'uz' ? 'Fikringizni yozing...' : 'Напишите ваш отзыв...'}
-                                rows={3} required
+                                rows={3}
                                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-yellow-400 transition-colors resize-none bg-gray-50 focus:bg-white" />
-                            {submitSuccess && <p className="text-green-600 text-sm font-medium">✅ {lang === 'uz' ? "Sharhingiz qo'shildi!" : 'Ваш отзыв добавлен!'}</p>}
-                            <button type="submit" disabled={submitting || !reviewText.trim()}
+                            <button type="submit" disabled={submitting}
                                 className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-100 disabled:text-gray-400 text-black font-bold px-6 py-3 rounded-xl transition-all active:scale-95">
                                 <Send size={16} />
-                                {submitting ? (lang === 'uz' ? 'Yuborilmoqda...' : 'Отправка...') : (lang === 'uz' ? 'Sharh yuborish' : 'Отправить')}
+                                {submitting ? (lang === 'uz' ? 'Yuborilmoqda...' : 'Отправка...') : (lang === 'uz' ? 'Yuborish' : 'Отправить')}
                             </button>
                         </form>
-                    </div>
-                ) : (
-                    <div className="bg-gray-50 border border-dashed border-gray-300 rounded-2xl p-6 mb-6 text-center">
-                        <p className="text-gray-500 mb-3 text-sm">{lang === 'uz' ? 'Sharh yozish uchun hisobingizga kiring' : 'Войдите в аккаунт, чтобы оставить отзыв'}</p>
-                        <Link href="/login" className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-5 py-2.5 rounded-xl text-sm transition-colors">
-                            <LogIn size={15} />{lang === 'uz' ? 'Kirish' : 'Войти'}
-                        </Link>
-                    </div>
-                )}
-
-                {reviewsLoading ? (
-                    <div className="flex justify-center py-8"><div className="w-8 h-8 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" /></div>
-                ) : reviews.length === 0 ? (
-                    <div className="text-center py-10 text-gray-400">
-                        <p className="text-4xl mb-3">💬</p>
-                        <p>{lang === 'uz' ? "Hali sharhlar yo'q. Birinchi bo'ling!" : 'Отзывов пока нет. Будьте первым!'}</p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {reviews.map(r => (
-                            <div key={r.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
-                                <div className="flex items-start justify-between mb-2">
-                                    <div>
-                                        <span className="font-bold text-gray-900">{r.userName}</span>
-                                        <div className="flex gap-0.5 mt-1">
-                                            {[1, 2, 3, 4, 5].map(s => (
-                                                <Star key={s} size={13} className={s <= r.rating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <span className="text-xs text-gray-400">{new Date(r.createdAt).toLocaleDateString(lang === 'uz' ? 'uz-UZ' : 'ru-RU')}</span>
-                                </div>
-                                <p className="text-sm text-gray-700 leading-relaxed">{r.comment}</p>
-                            </div>
-                        ))}
                     </div>
                 )}
             </div>
