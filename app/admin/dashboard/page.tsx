@@ -291,7 +291,7 @@ export default function AdminDashboard() {
 
     const handleEdit = (p: Product) => {
         setEditProduct(p);
-        const specsArray = p.specs ? Object.entries(p.specs).map(([key, value]) => ({ key, value })) : [];
+        const specsArray = p.specs ? Object.entries(p.specs).map(([key, value]) => ({ key, value: value as string })) : [];
         setNewProduct({
             name: p.name, nameRu: p.nameRu || p.name, brand: p.brand, price: String(p.price),
             oldPrice: p.oldPrice ? String(p.oldPrice) : '', category: p.category,
@@ -300,11 +300,14 @@ export default function AdminDashboard() {
             installmentMonths: p.installmentMonths || 12, discountPercent: p.discountPercent ? String(p.discountPercent) : '',
             creditMarkupPercent: p.creditMarkupPercent ? String(p.creditMarkupPercent) : '',
             specs: specsArray,
+            extraImages: [],
+            variants: [],
         });
         setImageMode('url');
         setShowAddForm(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
+
 
     // Brand management
     const handleAddBrand = async () => {
