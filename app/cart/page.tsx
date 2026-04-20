@@ -22,8 +22,29 @@ export default function CartPage() {
     const [step, setStep] = useState<'cart' | 'form' | 'success'>('cart');
 
     useEffect(() => {
-        if (typeof window !== 'undefined' && window.location.search.includes('direct=1')) {
-            setStep('form');
+        if (typeof window !== 'undefined') {
+            if (window.location.search.includes('direct=1')) {
+                setStep('form');
+            }
+
+            const savedName = localStorage.getItem('user_name') || '';
+            const savedPhone = localStorage.getItem('user_phone') || '';
+            
+            const nameParts = savedName.split(' ');
+            const n = nameParts[0] || '';
+            const s = nameParts.slice(1).join(' ') || '';
+
+            let p = savedPhone.replace(/\D/g, '');
+            if (p.startsWith('998')) p = p.substring(3);
+
+            if (n || p) {
+                setForm(f => ({
+                    ...f,
+                    name: f.name || n,
+                    surname: f.surname || s,
+                    phone: f.phone || p,
+                }));
+            }
         }
     }, []);
     const [sending, setSending] = useState(false);

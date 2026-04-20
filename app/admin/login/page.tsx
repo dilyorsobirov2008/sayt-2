@@ -11,7 +11,10 @@ export default function AdminLogin() {
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         // Oddiy tekshiruv admin uchun
-        if (email === 'dilyorsobirov04@gmail.com' && password === 'dilyor1234') {
+        if (
+            (email === 'dilyorsobirov04@gmail.com' && password === 'dilyor1234') ||
+            (email === 'abdujalil@gmail.com' && password === 'abdujalil1234')
+        ) {
             localStorage.setItem('admin_auth', 'true');
             router.push('/admin/dashboard');
         } else {

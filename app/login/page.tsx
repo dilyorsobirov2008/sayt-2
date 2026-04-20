@@ -41,6 +41,7 @@ export default function LoginPage() {
                 localStorage.setItem('user_id', String(data.id));
                 localStorage.setItem('user_name', `${data.firstName} ${data.lastName}`.trim());
                 localStorage.setItem('user_email', data.email);
+                localStorage.setItem('user_phone', data.phone || '');
                 router.push('/profile');
             } else {
                 setLoginError(data.error || "Email yoki parol noto'g'ri!");
@@ -69,6 +70,7 @@ export default function LoginPage() {
                 localStorage.setItem('user_id', String(data.id));
                 localStorage.setItem('user_name', `${data.firstName} ${data.lastName}`.trim());
                 localStorage.setItem('user_email', data.email);
+                localStorage.setItem('user_phone', data.phone || '');
                 setRegSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz!");
                 setTimeout(() => router.push('/profile'), 1200);
             } else {
