@@ -27,7 +27,15 @@ export default function LoginPage() {
         setLoginError('');
         setLoginLoading(true);
 
-
+        // Admin tekshiruvi
+        if (
+            (loginEmail === 'dilyorsobirov04@gmail.com' && loginPass === 'dilyor1234') ||
+            (loginEmail === 'abdujalil@gmail.com' && loginPass === 'abdujalil1234')
+        ) {
+            localStorage.setItem('admin_auth', 'true');
+            router.push('/admin/dashboard');
+            return;
+        }
 
         try {
             const res = await fetch('/api/auth/login', {
