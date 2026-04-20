@@ -15,7 +15,7 @@ export default function LoginPage() {
     // Register
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState('+998 ');
     const [regEmail, setRegEmail] = useState('');
     const [regPass, setRegPass] = useState('');
     const [regError, setRegError] = useState('');
