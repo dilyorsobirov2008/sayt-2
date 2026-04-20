@@ -65,23 +65,7 @@ export default function ProfilePage() {
 
 
             {/* Auth block */}
-            {isAdmin ? (
-                <div className="bg-gray-900 rounded-2xl p-5 mb-4 space-y-2">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Shield size={18} className="text-yellow-400" />
-                        <span className="text-white font-bold text-sm">Admin huquqingiz bor</span>
-                    </div>
-                    <Link href="/admin/dashboard"
-                        className="flex items-center justify-center gap-2 w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold py-3 rounded-xl text-sm transition-colors">
-                        <Shield size={15} />
-                        Admin panelini ochish
-                    </Link>
-                    <button onClick={handleLogout}
-                        className="w-full border border-red-500/30 text-red-400 hover:bg-red-500/10 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                        <LogOut size={14} /> Chiqish
-                    </button>
-                </div>
-            ) : isLoggedIn ? (
+            {isLoggedIn ? (
                 <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-4">
                     <p className="text-green-600 text-sm font-medium mb-3">✅ Hisobingizga kirgansiz</p>
                     <button onClick={handleLogout}

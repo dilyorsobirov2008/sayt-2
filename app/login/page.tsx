@@ -2,10 +2,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-const ADMIN_EMAIL = 'dilyorsobirov04@gmail.com';
-const ADMIN_PASS = 'dilyor1234';
-
 export default function LoginPage() {
     const router = useRouter();
     const [tab, setTab] = useState<'login' | 'register'>('login');
@@ -31,13 +27,7 @@ export default function LoginPage() {
         setLoginError('');
         setLoginLoading(true);
 
-        if (loginEmail === ADMIN_EMAIL && loginPass === ADMIN_PASS) {
-            localStorage.setItem('admin_auth', 'true');
-            localStorage.setItem('user_name', 'Admin');
-            localStorage.setItem('user_email', loginEmail);
-            router.push('/admin/dashboard');
-            return;
-        }
+
 
         try {
             const res = await fetch('/api/auth/login', {

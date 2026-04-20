@@ -78,6 +78,7 @@ export default function AdminDashboard() {
     const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
     const [catImageMode, setCatImageMode] = useState<'url' | 'upload'>('url');
     const [searchQ, setSearchQ] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('all');
     const [toast, setToast] = useState('');
     // Excel import states
     const [excelFile, setExcelFile] = useState<File | null>(null);
@@ -427,10 +428,11 @@ export default function AdminDashboard() {
     };
 
     const currentImage = imageMode === 'upload' ? newProduct.imagePreview : newProduct.imageUrl;
-    const filteredProducts = products.filter(p =>
-        p.name.toLowerCase().includes(searchQ.toLowerCase()) ||
-        p.brand.toLowerCase().includes(searchQ.toLowerCase())
-    );
+    const filteredProducts = products.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchQ.toLowerCase()) || p.brand.toLowerCase().includes(searchQ.toLowerCase());
+        const matchesCat = selectedCategory === 'all' || p.category === selectedCategory;
+        return matchesSearch && matchesCat;
+    });
 
     const totalRevenue = orders.reduce((s, o) => s + o.amount, 0);
 
@@ -624,12 +626,22 @@ export default function AdminDashboard() {
                 {/* ── PRODUCTS ── */}
                 {activeTab === 'products' && (
                     <div className="animate-fadeIn space-y-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <h2 className="text-xl font-bold">Mahsulotlar ({filteredProducts.length})</h2>
-                            <button onClick={() => { setShowAddForm(!showAddForm); setEditProduct(null); setNewProduct(emptyProduct); }}
-                                className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2.5 rounded-xl text-sm transition-colors">
-                                <Plus size={16} /> Qo'shish
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <select 
+                                    value={selectedCategory} 
+                                    onChange={e => setSelectedCategory(e.target.value)}
+                                    className="bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none"
+                                >
+                                    <option value="all">Barcha kategoriyalar</option>
+                                    {categories.map(c => <option key={c.slug} value={c.slug}>{c.name}</option>)}
+                                </select>
+                                <button onClick={() => { setShowAddForm(!showAddForm); setEditProduct(null); setNewProduct(emptyProduct); }}
+                                    className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2.5 rounded-xl text-sm transition-colors whitespace-nowrap">
+                                    <Plus size={16} /> Qo'shish
+                                </button>
+                            </div>
                         </div>
 
                         {/* ── ADD / EDIT FORM ── */}
@@ -1030,6 +1042,7 @@ export default function AdminDashboard() {
                                     <div className="p-3">
                                         <p className="text-white text-xs font-medium line-clamp-1">{p.name}</p>
                                         <p className="text-gray-600 text-xs">{p.brand}</p>
+                                        <p className="text-gray-500 text-[10px] truncate">{categories.find(c => c.slug === p.category)?.name || p.category}</p>
                                         <p className="text-yellow-400 text-xs font-bold mt-0.5">{formatPrice(p.price)}</p>
                                         {p.installmentMonths && (
                                             <p className="text-gray-500 text-[10px]">
