@@ -47,7 +47,7 @@ export default function ProfilePage() {
             {/* Menu links */}
             <div className="space-y-2 mb-4">
                 {[
-                    { icon: ShoppingBag, label: lang === 'uz' ? 'Buyurtmalarim' : 'Мои заказы', href: '#orders', badge: null },
+                    { icon: ShoppingBag, label: lang === 'uz' ? 'Buyurtmalarim' : 'Мои заказы', href: '/orders', badge: null },
                     { icon: Heart, label: lang === 'uz' ? 'Sevimlilar' : 'Избранное', href: '/favorites', badge: favorites.length || null },
                     { icon: ShoppingBag, label: lang === 'uz' ? 'Savatcha' : 'Корзина', href: '/cart', badge: cartCount || null },
                 ].map(({ icon: Icon, label, href, badge }) => (
