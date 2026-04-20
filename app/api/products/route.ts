@@ -101,6 +101,28 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Save extra images
+    if (body.extraImages?.length) {
+      await prisma.productImage.deleteMany({ where: { productId: product.id } });
+      await prisma.productImage.createMany({
+        data: body.extraImages.map((url: string, i: number) => ({ productId: product.id, url, sortOrder: i + 1 })),
+      });
+    }
+
+    // Save color variants
+    if (body.variants?.length) {
+      await prisma.productVariant.deleteMany({ where: { productId: product.id } });
+      await prisma.productVariant.createMany({
+        data: body.variants.map((v: any) => ({
+          productId: product.id,
+          color: v.color,
+          colorName: v.colorName,
+          colorNameRu: v.colorNameRu || null,
+          image: v.image || null,
+        })),
+      });
+    }
+
     return NextResponse.json(product);
   } catch (error: any) {
     console.error('Error creating product:', error);
@@ -164,6 +186,32 @@ export async function PUT(req: NextRequest) {
         specs: body.specs ? JSON.stringify(body.specs) : undefined,
       },
     });
+
+    // Save extra images
+    if (body.extraImages !== undefined) {
+      await prisma.productImage.deleteMany({ where: { productId: parseInt(body.id) } });
+      if (body.extraImages.length) {
+        await prisma.productImage.createMany({
+          data: body.extraImages.map((url: string, i: number) => ({ productId: parseInt(body.id), url, sortOrder: i + 1 })),
+        });
+      }
+    }
+
+    // Save color variants
+    if (body.variants !== undefined) {
+      await prisma.productVariant.deleteMany({ where: { productId: parseInt(body.id) } });
+      if (body.variants.length) {
+        await prisma.productVariant.createMany({
+          data: body.variants.map((v: any) => ({
+            productId: parseInt(body.id),
+            color: v.color,
+            colorName: v.colorName,
+            colorNameRu: v.colorNameRu || null,
+            image: v.image || null,
+          })),
+        });
+      }
+    }
 
     return NextResponse.json(product);
   } catch (error: any) {

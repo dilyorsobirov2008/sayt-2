@@ -23,6 +23,8 @@ interface NewProduct {
     installmentMonths: number; discountPercent: string;
     creditMarkupPercent: string;
     specs: { key: string; value: string }[];
+    extraImages: string[];
+    variants: { color: string; colorName: string; colorNameRu: string; image: string }[];
 }
 
 interface NewCategory {
@@ -36,6 +38,8 @@ const emptyProduct: NewProduct = {
     inStock: true, isNew: false, isFeatured: false,
     installmentMonths: 12, discountPercent: '', creditMarkupPercent: '',
     specs: [],
+    extraImages: [],
+    variants: [],
 };
 
 const emptyCategory: NewCategory = {
@@ -238,6 +242,8 @@ export default function AdminDashboard() {
         });
         const specs = Object.keys(specsObj).length > 0 ? specsObj : undefined;
         const creditMarkup = newProduct.creditMarkupPercent ? parseInt(newProduct.creditMarkupPercent) : undefined;
+        const validExtraImages = newProduct.extraImages.filter(u => u.trim());
+        const validVariants = newProduct.variants.filter(v => v.colorName.trim());
 
         try {
             if (editProduct) {
@@ -251,6 +257,8 @@ export default function AdminDashboard() {
                         isNew: newProduct.isNew, isFeatured: newProduct.isFeatured,
                         installmentMonths: newProduct.installmentMonths, discountPercent: discNum,
                         creditMarkupPercent: creditMarkup, specs,
+                        extraImages: validExtraImages,
+                        variants: validVariants,
                     }),
                 });
                 const data = await res.json();
@@ -267,6 +275,8 @@ export default function AdminDashboard() {
                         inStock: newProduct.inStock, isNew: newProduct.isNew,
                         isFeatured: newProduct.isFeatured, installmentMonths: newProduct.installmentMonths,
                         discountPercent: discNum, creditMarkupPercent: creditMarkup, specs,
+                        extraImages: validExtraImages,
+                        variants: validVariants,
                     }),
                 });
                 const data = await res.json();
@@ -277,6 +287,7 @@ export default function AdminDashboard() {
         } catch (err: any) { showToast(`❌ Xatolik: ${err.message || 'Noma\'lum xato'}`); }
         setNewProduct(emptyProduct); setShowAddForm(false); setEditProduct(null);
     };
+
 
     const handleEdit = (p: Product) => {
         setEditProduct(p);
@@ -896,6 +907,90 @@ export default function AdminDashboard() {
                                                 </div>
                                             );
                                         })()}
+
+                                        {/* ── EXTRA IMAGES (2-3 ta qo'shimcha rasm) ── */}
+                                        <div className="mt-4 pt-4 border-t border-[#1e1e1e]">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider">🖼️ Qo'shimcha rasmlar (max 3)</label>
+                                                {newProduct.extraImages.length < 3 && (
+                                                    <button type="button"
+                                                        onClick={() => setNewProduct(p => ({ ...p, extraImages: [...p.extraImages, ''] }))}
+                                                        className="text-xs bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1">
+                                                        <Plus size={12} /> Rasm qo'shish
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {newProduct.extraImages.length === 0 && (
+                                                <p className="text-gray-600 text-xs italic">Mahsulot uchun qo'shimcha rasmlar (mahsulot sahifasida gallery ko'rinadi)</p>
+                                            )}
+                                            <div className="space-y-2">
+                                                {newProduct.extraImages.map((img, idx) => (
+                                                    <div key={idx} className="flex items-center gap-2">
+                                                        <input
+                                                            value={img}
+                                                            onChange={e => {
+                                                                const imgs = [...newProduct.extraImages];
+                                                                imgs[idx] = e.target.value;
+                                                                setNewProduct(p => ({ ...p, extraImages: imgs }));
+                                                            }}
+                                                            placeholder={`https://... (rasm ${idx + 2})`}
+                                                            className="flex-1 bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600 transition-colors"
+                                                        />
+                                                        {img && <img src={img} alt="" className="w-10 h-10 rounded-lg object-cover border border-[#333]" />}
+                                                        <button type="button"
+                                                            onClick={() => setNewProduct(p => ({ ...p, extraImages: p.extraImages.filter((_, i) => i !== idx) }))}
+                                                            className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 flex items-center justify-center shrink-0 transition-colors">
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* ── RANG VARIANTLARI ── */}
+                                        <div className="mt-4 pt-4 border-t border-[#1e1e1e]">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider">🎨 Rang variantlari</label>
+                                                <button type="button"
+                                                    onClick={() => setNewProduct(p => ({ ...p, variants: [...p.variants, { color: '#000000', colorName: '', colorNameRu: '', image: '' }] }))}
+                                                    className="text-xs bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1">
+                                                    <Plus size={12} /> Rang qo'shish
+                                                </button>
+                                            </div>
+                                            {newProduct.variants.length === 0 && (
+                                                <p className="text-gray-600 text-xs italic">Masalan: Qora (#000000), Oq (#ffffff), Qizil (#ff0000)</p>
+                                            )}
+                                            <div className="space-y-3">
+                                                {newProduct.variants.map((v, idx) => (
+                                                    <div key={idx} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-3 space-y-2">
+                                                        <div className="flex items-center gap-2">
+                                                            <input type="color" value={v.color}
+                                                                onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], color: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
+                                                                className="w-10 h-10 rounded-lg cursor-pointer border-0 bg-transparent" />
+                                                            <input value={v.colorName}
+                                                                onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], colorName: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
+                                                                placeholder="Nomi UZ (masalan: Qora)"
+                                                                className="flex-1 bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                            <input value={v.colorNameRu}
+                                                                onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], colorNameRu: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
+                                                                placeholder="Nomi RU (Чёрный)"
+                                                                className="flex-1 bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                            <button type="button"
+                                                                onClick={() => setNewProduct(p => ({ ...p, variants: p.variants.filter((_, i) => i !== idx) }))}
+                                                                className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 flex items-center justify-center shrink-0">
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
+                                                        <input value={v.image}
+                                                            onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], image: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
+                                                            placeholder="Bu rang uchun rasm URL (ixtiyoriy)"
+                                                            className="w-full bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                        {v.image && <img src={v.image} alt={v.colorName} className="w-16 h-16 rounded-lg object-cover border border-[#333]" />}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
                                     </div>
                                 </div>
 
