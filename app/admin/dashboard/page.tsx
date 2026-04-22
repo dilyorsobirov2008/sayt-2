@@ -290,9 +290,30 @@ export default function AdminDashboard() {
     };
 
 
-    const handleEdit = (p: Product) => {
+    const handleEdit = async (p: Product) => {
         setEditProduct(p);
         const specsArray = p.specs ? Object.entries(p.specs).map(([key, value]) => ({ key, value: value as string })) : [];
+
+        // Mavjud rasmlar va variantlarni API dan yuklaymiz
+        let extraImages: string[] = [];
+        let variants: { color: string; colorName: string; colorNameRu: string; image: string }[] = [];
+        try {
+            const res = await fetch(`/api/products/${p.id}`);
+            const data = await res.json();
+            if (data.product) {
+                // Asosiy rasmdan tashqari qo'shimcha rasmlar
+                extraImages = (data.product.images || []).filter((img: string) => img !== p.image);
+                variants = (data.product.variants || []).map((v: any) => ({
+                    color: v.color || '#000000',
+                    colorName: v.colorName || '',
+                    colorNameRu: v.colorNameRu || '',
+                    image: v.image || '',
+                }));
+            }
+        } catch (e) {
+            console.error('Variant/rasmlarni yuklashda xato:', e);
+        }
+
         setNewProduct({
             name: p.name, nameRu: p.nameRu || p.name, brand: p.brand, price: String(p.price),
             oldPrice: p.oldPrice ? String(p.oldPrice) : '', category: p.category,
@@ -301,8 +322,8 @@ export default function AdminDashboard() {
             installmentMonths: p.installmentMonths || 12, discountPercent: p.discountPercent ? String(p.discountPercent) : '',
             creditMarkupPercent: p.creditMarkupPercent ? String(p.creditMarkupPercent) : '',
             specs: specsArray,
-            extraImages: [],
-            variants: [],
+            extraImages,
+            variants,
         });
         setImageMode('url');
         setShowAddForm(true);
@@ -996,11 +1017,38 @@ export default function AdminDashboard() {
                                                                 <X size={14} />
                                                             </button>
                                                         </div>
-                                                        <input value={v.image}
-                                                            onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], image: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
-                                                            placeholder="Bu rang uchun rasm URL (ixtiyoriy)"
-                                                            className="w-full bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
-                                                        {v.image && <img src={v.image} alt={v.colorName} className="w-16 h-16 rounded-lg object-cover border border-[#333]" />}
+                                                        <div className="flex items-center gap-2 w-full">
+                                                            <input value={v.image}
+                                                                onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], image: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
+                                                                placeholder="Bu rang uchun rasm URL yoki fayl yuklang"
+                                                                className="flex-1 bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                            <label className="cursor-pointer shrink-0 flex items-center gap-1 px-3 py-2 rounded-lg bg-yellow-400/10 hover:bg-yellow-400/20 text-yellow-400 text-xs font-bold transition-colors">
+                                                                <Upload size={12} /> Fayl
+                                                                <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                                                                    const file = e.target.files?.[0];
+                                                                    if (!file) return;
+                                                                    const reader = new FileReader();
+                                                                    reader.onloadend = async () => {
+                                                                        try {
+                                                                            const res = await fetch('/api/upload', {
+                                                                                method: 'POST',
+                                                                                headers: { 'Content-Type': 'application/json' },
+                                                                                body: JSON.stringify({ base64: reader.result }),
+                                                                            });
+                                                                            const data = await res.json();
+                                                                            if (data.url) {
+                                                                                const vs = [...newProduct.variants];
+                                                                                vs[idx] = { ...vs[idx], image: data.url };
+                                                                                setNewProduct(p => ({ ...p, variants: vs }));
+                                                                                showToast('✅ Rasm yuklandi!');
+                                                                            }
+                                                                        } catch { showToast('❌ Rasm yuklanmadi!'); }
+                                                                    };
+                                                                    reader.readAsDataURL(file);
+                                                                }} />
+                                                            </label>
+                                                            {v.image && <img src={v.image} alt={v.colorName} className="w-12 h-12 rounded-lg object-cover border border-[#333] shrink-0" />}
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
