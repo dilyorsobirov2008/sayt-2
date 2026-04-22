@@ -42,16 +42,7 @@ export function MegaMenu() {
                         ))}
                     </div>
 
-                    {/* Promo strip */}
-                    <div className="mt-5 bg-gradient-to-r from-yellow-400 to-yellow-300 rounded-xl px-6 py-4 flex items-center justify-between">
-                        <p className="font-bold text-black">
-                            {lang === 'uz' ? "⚡ 0-0-12 muddatli to'lov — barcha mahsulotlarga!" : "⚡ Рассрочка 0-0-12 на все товары!"}
-                        </p>
-                        <Link href="/catalog" onClick={() => setMegaMenuOpen(false)}
-                            className="bg-black text-yellow-400 px-4 py-2 rounded-lg text-sm font-bold hover:bg-gray-800 transition-colors">
-                            {lang === 'uz' ? "Xarid" : "Купить"}
-                        </Link>
-                    </div>
+
                 </div>
             </div>
         </>
