@@ -137,3 +137,17 @@ model Visitor {
   fingerprint String   @unique
   createdAt   DateTime @default(now())
 }
+
+model Banner {
+  id         Int      @id @default(autoincrement())
+  title      String
+  titleRu    String?
+  subtitle   String?
+  subtitleRu String?
+  bg         String?
+  badge      String?
+  badgeRu    String?
+  link       String?
+  image      String?
+  createdAt  DateTime @default(now())
+}

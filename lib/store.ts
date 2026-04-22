@@ -44,6 +44,7 @@ interface StoreState {
     orders: any[];
     visitors: number;
     installmentPlans: InstallmentPlan[];
+    banners: Banner[];
     hasHydrated: boolean;
     setHasHydrated: (v: boolean) => void;
 
@@ -57,6 +58,7 @@ interface StoreState {
     fetchOrders: () => Promise<void>;
     fetchVisitors: () => Promise<void>;
     fetchInstallmentPlans: () => Promise<void>;
+    fetchBanners: () => Promise<void>;
     fetchAll: () => Promise<void>;
 
     // Setters (for optimistic updates)
@@ -66,6 +68,7 @@ interface StoreState {
     setOrders: (orders: any[]) => void;
     setVisitors: (visitors: number) => void;
     setInstallmentPlans: (plans: InstallmentPlan[]) => void;
+    setBanners: (banners: Banner[]) => void;
 }
 
 export const useStore = create<StoreState>()(

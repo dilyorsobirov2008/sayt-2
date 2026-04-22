@@ -54,6 +54,7 @@ const TABS = [
     { id: 'installments', label: "Bo'lib to'lash" },
     { id: 'categories', label: 'Kategoriyalar' },
     { id: 'brands', label: 'Brendlar' },
+    { id: 'banners', label: 'Bannerlar' },
     { id: 'excel-import', label: '📥 Excel Import' },
     { id: 'users', label: 'Foydalanuvchilar' },
 ];
@@ -63,7 +64,7 @@ import { useStore } from '@/lib/store';
 export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('dashboard');
-    const { products, setProducts, orders, setOrders, categories, setCategories, brands, setBrands, visitors, installmentPlans, fetchAll, fetchOrders, fetchVisitors, fetchProducts, fetchCategories, fetchBrands, fetchInstallmentPlans } = useStore();
+    const { products, setProducts, orders, setOrders, categories, setCategories, brands, setBrands, visitors, installmentPlans, banners, fetchAll, fetchOrders, fetchVisitors, fetchProducts, fetchCategories, fetchBrands, fetchInstallmentPlans, fetchBanners } = useStore();
     const [newBrandName, setNewBrandName] = useState('');
     // Installment plan states
     const [newPlanMonths, setNewPlanMonths] = useState('');
@@ -77,6 +78,16 @@ export default function AdminDashboard() {
     const [newCategory, setNewCategory] = useState<NewCategory>(emptyCategory);
     const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
     const [catImageMode, setCatImageMode] = useState<'url' | 'upload'>('url');
+    const [bannerImageMode, setBannerImageMode] = useState<'url' | 'upload'>('url');
+    
+    // Banner states
+    const [showAddBannerForm, setShowAddBannerForm] = useState(false);
+    const [editBanner, setEditBanner] = useState<any>(null);
+    const [newBanner, setNewBanner] = useState({
+        title: '', titleRu: '', subtitle: '', subtitleRu: '',
+        bg: 'from-yellow-400 to-yellow-600', badge: '', badgeRu: '',
+        link: '/catalog', image: '', imageFile: null as File | null, imagePreview: ''
+    });
     const [searchQ, setSearchQ] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('all');
     const [toast, setToast] = useState('');
@@ -98,6 +109,7 @@ export default function AdminDashboard() {
         fetchOrders();
         fetchVisitors();
         fetchInstallmentPlans();
+        fetchBanners();
     }, [router]);
 
     const showToast = (msg: string) => {
@@ -434,6 +446,85 @@ export default function AdminDashboard() {
             await fetchInstallmentPlans();
             showToast('🗑️ Reja o\'chirildi!');
         } catch { showToast('❌ Xatolik!'); }
+    };
+
+    // ── Banner handlers ──
+    const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setNewBanner(b => ({ ...b, imageFile: file, imagePreview: reader.result as string }));
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleAddBanner = async () => {
+        if (!newBanner.title || !newBanner.badge) {
+            showToast('❌ Sarlavha va chegirma (badge) kiritilishi shart!');
+            return;
+        }
+
+        const image = bannerImageMode === 'upload'
+            ? newBanner.imagePreview || 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=500&q=80'
+            : newBanner.image || 'https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=500&q=80';
+
+        try {
+            if (editBanner) {
+                await fetch(`/api/banners/${editBanner.id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...newBanner, image }),
+                });
+                showToast('✅ Banner yangilandi!');
+            } else {
+                await fetch('/api/banners', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ...newBanner, image }),
+                });
+                showToast('✅ Banner qo\'shildi!');
+            }
+            await fetchBanners();
+            setNewBanner({ title: '', titleRu: '', subtitle: '', subtitleRu: '', bg: 'from-yellow-400 to-yellow-600', badge: '', badgeRu: '', link: '/catalog', image: '', imageFile: null, imagePreview: '' });
+            setEditBanner(null);
+            setShowAddBannerForm(false);
+        } catch (err: any) {
+            showToast(`❌ Xatolik: ${err.message}`);
+        }
+    };
+
+    const handleEditBannerClick = (b: any) => {
+        setEditBanner(b);
+        setNewBanner({
+            title: b.title, titleRu: b.titleRu || '', subtitle: b.subtitle || '', subtitleRu: b.subtitleRu || '',
+            bg: b.bg || 'from-yellow-400 to-yellow-600', badge: b.badge || '', badgeRu: b.badgeRu || '',
+            link: b.link || '/catalog', image: b.image || '', imageFile: null, imagePreview: ''
+        });
+        setBannerImageMode('url');
+        setShowAddBannerForm(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    const handleDeleteBanner = async (id: number) => {
+        try {
+            await fetch(`/api/banners/${id}`, { method: 'DELETE' });
+            await fetchBanners();
+            showToast('🗑️ Banner o\'chirildi!');
+        } catch { showToast('❌ Xatolik!'); }
+    };
+
+    const handleSeedBanners = async () => {
+        if (!confirm('Asosiy bannerlarni qayta tiklashni xohlaysizmi?')) return;
+        try {
+            await fetch('/api/banners', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'seed' }),
+            });
+            await fetchBanners();
+            showToast('✅ Bannerlar tiklandi!');
+        } catch { showToast('❌ Xatolik yuz berdi!'); }
     };
 
     const handleTogglePlan = async (plan: any) => {
@@ -1418,6 +1509,130 @@ export default function AdminDashboard() {
                                         className="mt-3 w-full py-1.5 bg-red-500/10 hover:bg-red-500/25 text-red-400 rounded-lg flex items-center justify-center gap-1.5 transition-colors text-xs font-bold">
                                         <Trash2 size={12} /> O'chirish
                                     </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* ── BANNERS ── */}
+                {activeTab === 'banners' && (
+                    <div className="animate-fadeIn space-y-5">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-bold flex items-center gap-2">🖼️ Bannerlar ({banners?.length || 0})</h2>
+                            <div className="flex items-center gap-2">
+                                <button onClick={handleSeedBanners} className="text-xs bg-gray-800 hover:bg-gray-700 font-bold px-3 py-2 rounded-xl text-white transition-colors">
+                                    🔄 Tiklash
+                                </button>
+                                <button onClick={() => { setShowAddBannerForm(!showAddBannerForm); setEditBanner(null); setNewBanner({ title: '', titleRu: '', subtitle: '', subtitleRu: '', bg: 'from-yellow-400 to-yellow-600', badge: '', badgeRu: '', link: '/catalog', image: '', imageFile: null, imagePreview: '' }); }}
+                                    className="flex items-center gap-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold px-4 py-2 rounded-xl text-sm transition-colors">
+                                    <Plus size={16} /> Qo'shish
+                                </button>
+                            </div>
+                        </div>
+
+                        {showAddBannerForm && (
+                            <div className="bg-[#111] border border-yellow-400/30 rounded-2xl p-6 mb-5">
+                                <h3 className="font-bold text-base text-yellow-400 mb-4">{editBanner ? '✏️ Bannerni tahrirlash' : '➕ Yangi banner qo\'shish'}</h3>
+                                <div className="grid md:grid-cols-2 gap-4">
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-gray-400 text-xs block mb-1">Maxsulot nomi (Sarlavha) *</label>
+                                                <input value={newBanner.title} onChange={e => setNewBanner(b => ({ ...b, title: e.target.value }))} className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                            </div>
+                                            <div>
+                                                <label className="text-gray-400 text-xs block mb-1">Sarlavha (RU)</label>
+                                                <input value={newBanner.titleRu} onChange={e => setNewBanner(b => ({ ...b, titleRu: e.target.value }))} className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-gray-400 text-xs block mb-1">Foiz yoki yorliq (Badge) *</label>
+                                                <input value={newBanner.badge} onChange={e => setNewBanner(b => ({ ...b, badge: e.target.value }))} placeholder="-30%" className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                            </div>
+                                            <div>
+                                                <label className="text-gray-400 text-xs block mb-1">Yorliq (Badge RU)</label>
+                                                <input value={newBanner.badgeRu} onChange={e => setNewBanner(b => ({ ...b, badgeRu: e.target.value }))} placeholder="-30%" className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label className="text-gray-400 text-xs block mb-1">Tavsif (Subtitle)</label>
+                                                <input value={newBanner.subtitle} onChange={e => setNewBanner(b => ({ ...b, subtitle: e.target.value }))} className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                            </div>
+                                            <div>
+                                                <label className="text-gray-400 text-xs block mb-1">Tavsif (RU)</label>
+                                                <input value={newBanner.subtitleRu} onChange={e => setNewBanner(b => ({ ...b, subtitleRu: e.target.value }))} className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="text-gray-400 text-xs block mb-1">Tugma manzili (Link)</label>
+                                            <input value={newBanner.link} onChange={e => setNewBanner(b => ({ ...b, link: e.target.value }))} className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                        </div>
+                                        <div>
+                                            <label className="text-gray-400 text-xs block mb-1">Foy (Gradient/Color class)</label>
+                                            <input value={newBanner.bg} onChange={e => setNewBanner(b => ({ ...b, bg: e.target.value }))} placeholder="from-yellow-400 to-yellow-600" className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm focus:border-yellow-400 outline-none" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <label className="text-gray-400 text-xs block">Banner rasmi</label>
+                                        <div className="flex bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden w-fit">
+                                            {[{ v: 'url', l: '🔗 URL' }, { v: 'upload', l: '📁 Fayl' }].map(m => (
+                                                <button key={m.v} onClick={() => setBannerImageMode(m.v as 'url' | 'upload')} className={`px-4 py-2 text-xs font-semibold ${bannerImageMode === m.v ? 'bg-yellow-400 text-black' : 'text-gray-400'}`}>{m.l}</button>
+                                            ))}
+                                        </div>
+                                        {bannerImageMode === 'url' ? (
+                                            <input value={newBanner.image} onChange={e => setNewBanner(b => ({ ...b, image: e.target.value }))} placeholder="Rasm URL" className="w-full bg-[#1a1a1a] border border-[#2a2a2a] text-white rounded-xl px-3 py-2 text-sm mt-2" />
+                                        ) : (
+                                            <>
+                                                <input id="banner-upload" type="file" onChange={handleBannerFileChange} className="hidden" />
+                                                <label htmlFor="banner-upload" className="w-full border-2 border-dashed border-[#333] hover:border-yellow-400 rounded-xl py-6 flex flex-col items-center gap-2 text-gray-500 hover:text-white transition-all cursor-pointer mt-2">
+                                                    <Upload size={24} /> <span className="text-sm">Rasm tanlang</span>
+                                                </label>
+                                            </>
+                                        )}
+                                        <div className="aspect-[2.5/1] bg-[#1a1a1a] rounded-xl flex items-center justify-center overflow-hidden border border-[#2a2a2a]">
+                                            {(bannerImageMode === 'upload' ? newBanner.imagePreview : newBanner.image) ? (
+                                                <img src={bannerImageMode === 'upload' ? newBanner.imagePreview : newBanner.image} alt="preview" className="w-full h-full object-cover" />
+                                            ) : <span className="text-xs text-gray-600">Ko'rinish</span>}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex gap-3 mt-4 pt-4 border-t border-[#2a2a2a]">
+                                    <button onClick={handleAddBanner} className="bg-yellow-400 text-black px-5 py-2 rounded-xl text-sm font-bold">{editBanner ? 'Saqlash' : 'Qo\'shish'}</button>
+                                    <button onClick={() => setShowAddBannerForm(false)} className="border border-[#2a2a2a] text-gray-400 px-5 py-2 rounded-xl text-sm">Bekor</button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {banners?.map(b => (
+                                <div key={b.id} className="bg-[#111] border border-[#1e1e1e] rounded-2xl overflow-hidden flex flex-col group relative">
+                                    <div className={`aspect-[2.5/1] w-full p-6 relative flex flex-col justify-center bg-gradient-to-br ${b.bg}`}>
+                                        <div className="flex justify-between items-start z-10 w-2/3">
+                                            <div>
+                                                <span className="text-white bg-black/30 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm backdrop-blur-sm uppercase">Banner</span>
+                                                <h3 className="text-black font-extrabold text-2xl leading-tight mt-2">{b.title}</h3>
+                                                <p className="text-black/70 font-semibold text-xs mt-1">{b.subtitle || 'Tavsif yo\'q'}</p>
+                                            </div>
+                                        </div>
+                                        <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-end overflow-visible pr-4 md:pr-10">
+                                            {b.badge && (
+                                                <div className="absolute top-4 right-4 z-20 w-14 h-14 bg-[#FF0000] text-white rounded-full flex items-center justify-center font-extrabold text-sm rotate-12 shadow-xl border-4 border-black/10">
+                                                    {b.badge}
+                                                </div>
+                                            )}
+                                            {b.image && <img src={b.image} alt={b.title} className="max-h-[140%] max-w-[140%] object-contain drop-shadow-2xl z-10 transform translate-y-[10%]" />}
+                                        </div>
+                                    </div>
+                                    <div className="p-3 bg-[#111] flex justify-between items-center shadow-inner">
+                                        <p className="text-xs text-gray-500 truncate w-1/2">Link: {b.link}</p>
+                                        <div className="flex gap-2">
+                                            <button onClick={() => handleEditBannerClick(b)} className="text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-500/20">O'zgartirish</button>
+                                            <button onClick={() => handleDeleteBanner(b.id)} className="text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/20">O'chirish</button>
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>

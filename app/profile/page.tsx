@@ -31,16 +31,15 @@ export default function ProfilePage() {
 
     return (
         <div className="max-w-md mx-auto px-4 py-8">
-            {/* Avatar */}
             <div className="flex flex-col items-center gap-3 mb-8">
                 <div className="w-24 h-24 rounded-full bg-yellow-100 border-4 border-yellow-400 flex items-center justify-center">
                     <User size={48} className="text-yellow-500" />
                 </div>
                 <h1 className="text-xl font-extrabold">
-                    {isLoggedIn || isAdmin ? userName : t.profile.title}
+                    {userName || 'User'}
                 </h1>
                 <p className="text-sm text-gray-500">
-                    {isAdmin ? '👑 Administrator' : isLoggedIn ? 'Foydalanuvchi' : t.profile.loggedOut}
+                    {(isLoggedIn || isAdmin) ? (lang === 'uz' ? 'Faol hisob' : 'Активный аккаунт') : t.profile.loggedOut}
                 </p>
             </div>
 
