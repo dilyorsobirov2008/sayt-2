@@ -6,13 +6,16 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
+import { banners as staticBanners } from '@/lib/data';
 
 export function BannerSlider() {
     const { lang, banners } = useStore();
     
-    const sliderBanners = banners && banners.length > 3 ? banners.slice(0, banners.length - 2) : banners;
+    // Use dynamic if we have any, else fallback to static
+    let sliderBanners = banners && banners.length > 3 ? banners.slice(0, banners.length - 2) : banners;
+    const finalBanners = sliderBanners && sliderBanners.length > 0 ? sliderBanners : staticBanners;
 
-    if (!sliderBanners || sliderBanners.length === 0) return null;
+    if (!finalBanners || finalBanners.length === 0) return null;
 
     return (
         <Swiper
@@ -23,7 +26,7 @@ export function BannerSlider() {
             loop
             className="w-full rounded-xl overflow-hidden"
         >
-            {banners.map((banner: any) => (
+            {finalBanners.map((banner: any) => (
                 <SwiperSlide key={banner.id}>
                     <Link href={banner.link || '#'}>
                         <div className={`relative bg-gradient-to-r ${banner.bg || 'from-gray-900 to-gray-700'} min-h-[160px] md:min-h-[320px] overflow-hidden flex items-center`}>

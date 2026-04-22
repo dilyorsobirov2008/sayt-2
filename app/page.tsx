@@ -50,7 +50,17 @@ function HomeContent() {
               </div>
             ) : (
               <div className="flex-1 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl p-5 flex flex-col justify-end min-h-[150px] relative overflow-hidden">
-                <p className="text-white text-sm">Promo 1 loading...</p>
+                <img
+                  src="https://texnomart.uz/_nuxt/img/delivery-sm.36fc0e5.svg"
+                  alt="Delivery"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-20 w-auto opacity-50 pointer-events-none"
+                />
+                <p className="text-yellow-400 text-xs font-bold mb-1 relative z-10">{lang === 'uz' ? "Tezkor" : "Быстрая"}</p>
+                <p className="text-white text-lg font-extrabold leading-tight relative z-10">{lang === 'uz' ? "Yetkazib" : "Доставка"}<br />{lang === 'uz' ? "berish" : "по всему Узб"}</p>
+                <Link href="/catalog"
+                  className="mt-3 inline-block text-xs bg-yellow-400 text-black font-bold px-3 py-1.5 rounded-lg relative z-10 w-fit">
+                  {lang === 'uz' ? "Batafsil" : "Подробнее"}
+                </Link>
               </div>
             )}
 
@@ -67,7 +77,14 @@ function HomeContent() {
               </div>
             ) : (
               <div className="flex-1 bg-gradient-to-br from-yellow-400 to-yellow-300 rounded-xl p-5 flex flex-col justify-end min-h-[150px]">
-                 <p className="text-black text-sm">Promo 2 loading...</p>
+                <p className="text-black/60 text-xs font-bold mb-1">
+                  {lang === 'uz' ? "Smartfonlar" : "Смартфоны"}
+                </p>
+                <p className="text-black text-lg font-extrabold leading-tight">Samsung<br />Galaxy S24</p>
+                <Link href="/catalog"
+                  className="mt-3 inline-block text-xs bg-black text-yellow-400 font-bold px-3 py-1.5 rounded-lg w-fit">
+                  {lang === 'uz' ? "Xarid" : "Купить"}
+                </Link>
               </div>
             )}
           </div>
