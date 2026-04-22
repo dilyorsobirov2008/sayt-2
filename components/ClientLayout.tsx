@@ -41,7 +41,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
     return (
         <>
             {!isAdmin && <Header />}
-            <main className={!isAdmin ? 'pb-20 md:pb-0' : ''}>
+            <main className="min-h-screen">
                 {children}
             </main>
             {!isAdmin && <Footer />}

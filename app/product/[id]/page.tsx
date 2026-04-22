@@ -223,10 +223,10 @@ export default function ProductPage() {
                                     const isSel = selectedPlan?.id === plan.id;
                                     return (
                                         <button key={plan.id} onClick={() => setSelectedPlanId(plan.id)}
-                                            className={`flex flex-col items-center px-4 py-3 rounded-xl border-2 transition-all ${isSel ? 'border-yellow-400 bg-yellow-400/20 shadow-sm scale-[1.02]' : 'border-gray-200 bg-white hover:border-yellow-300'}`}>
-                                            <span className={`text-lg font-extrabold ${isSel ? 'text-yellow-700' : 'text-gray-700'}`}>{plan.months}</span>
-                                            <span className="text-[10px] text-gray-500 -mt-0.5">{lang === 'uz' ? 'oy' : 'мес'}</span>
-                                            <span className={`text-[10px] font-bold mt-1 px-1.5 py-0.5 rounded ${plan.interestPercent === 0 ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                                            className={`flex flex-col items-center px-3 sm:px-4 py-2 sm:py-3 rounded-xl border-2 transition-all ${isSel ? 'border-yellow-400 bg-yellow-400/20 shadow-sm scale-[1.02]' : 'border-gray-200 bg-white hover:border-yellow-300'}`}>
+                                            <span className={`text-base sm:text-lg font-extrabold ${isSel ? 'text-yellow-700' : 'text-gray-700'}`}>{plan.months}</span>
+                                            <span className="text-[9px] sm:text-[10px] text-gray-500 -mt-0.5">{lang === 'uz' ? 'oy' : 'мес'}</span>
+                                            <span className={`text-[9px] sm:text-[10px] font-bold mt-1 px-1.5 py-0.5 rounded ${plan.interestPercent === 0 ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
                                                 {plan.interestPercent === 0 ? '0%' : `+${plan.interestPercent}%`}
                                             </span>
                                         </button>
@@ -352,7 +352,7 @@ export default function ProductPage() {
                         <h2 className="text-2xl font-extrabold text-gray-900">{lang === 'uz' ? "Bunga o'xshash mahsulotlar" : 'Похожие товары'}</h2>
                         <Link href={`/catalog?category=${product.category}`} className="text-yellow-600 font-semibold text-sm hover:underline">{lang === 'uz' ? 'Barchasi' : 'Все'}</Link>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
                         {similarProducts.map(p => <ProductCard key={p.id} product={p} />)}
                     </div>
                 </div>

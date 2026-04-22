@@ -7,7 +7,7 @@ import { Search, ShoppingCart, Heart, ChevronDown, LayoutGrid, User } from 'luci
 import { MegaMenu } from './MegaMenu';
 
 export function Header() {
-    const { lang, setLang, cartCount, searchQuery, setSearchQuery, megaMenuOpen, setMegaMenuOpen } = useStore();
+    const { lang, setLang, cartCount, searchQuery, setSearchQuery, megaMenuOpen, setMegaMenuOpen, favorites } = useStore();
     const t = lang === 'uz' ? uz : ru;
     const count = cartCount();
     const router = useRouter();
@@ -22,24 +22,29 @@ export function Header() {
             {/* ── MOBILE HEADER ── */}
             <header className="md:hidden sticky top-0 z-40 bg-white shadow-sm">
                 {/* Top row: logo + icons */}
-                <div className="flex items-center justify-between px-4 py-2.5 border-b border-gray-100">
+                <div className="flex items-center justify-between px-3 sm:px-4 py-2.5 border-b border-gray-100">
                     <Link href="/" className="flex-shrink-0">
                         <span className="text-xl font-extrabold tracking-tight text-gray-900">
                             ashinde
                         </span>
                     </Link>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3 sm:gap-4">
                         <button onClick={() => setLang(lang === 'uz' ? 'ru' : 'uz')}
-                            className="text-xs font-bold text-gray-500 border border-gray-200 rounded-lg px-2 py-1">
+                            className="text-[10px] sm:text-xs font-bold text-gray-500 border border-gray-200 rounded-lg px-1.5 py-1">
                             {lang.toUpperCase()}
                         </button>
                         <Link href="/favorites" className="text-gray-600 relative">
-                            <Heart size={22} strokeWidth={1.8} />
+                            <Heart size={20} className="sm:w-[22px] sm:h-[22px]" strokeWidth={1.8} />
+                            {favorites.length > 0 && (
+                                <span className="absolute -top-1.5 -right-1.5 bg-yellow-400 text-black text-[9px] font-extrabold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white">
+                                    {favorites.length}
+                                </span>
+                            )}
                         </Link>
                         <Link href="/cart" className="text-gray-600 relative">
-                            <ShoppingCart size={22} strokeWidth={1.8} />
+                            <ShoppingCart size={20} className="sm:w-[22px] sm:h-[22px]" strokeWidth={1.8} />
                             {count > 0 && (
-                                <span className="absolute -top-1.5 -right-1.5 bg-yellow-400 text-black text-[9px] font-bold rounded-full min-w-[16px] h-[16px] flex items-center justify-center">
+                                <span className="absolute -top-1.5 -right-1.5 bg-yellow-400 text-black text-[9px] font-extrabold w-4 h-4 flex items-center justify-center rounded-full border-2 border-white">
                                     {count}
                                 </span>
                             )}

@@ -26,8 +26,8 @@ function HomeContent() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Banner + Categories row (like Texnomart: side by side on desktop) */}
-      <section className="px-3 md:px-6 pt-4 md:pt-5">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-4">
+      <section className="px-2 sm:px-3 md:px-6 pt-3 md:pt-4 md:pt-5">
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-3 md:gap-4">
           <BannerSlider />
 
           {/* Right promo boxes - desktop only */}
@@ -60,8 +60,8 @@ function HomeContent() {
       </section>
 
       {/* Categories */}
-      <section className="mt-5 px-3 md:px-6">
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
+      <section className="mt-4 md:mt-5 px-2 sm:px-3 md:px-6">
+        <div className="bg-white rounded-xl p-3 md:p-4 border border-gray-100">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm md:text-base font-bold text-gray-900">{t.home.categories}</h2>
             <div className="flex items-center gap-2">
@@ -79,9 +79,9 @@ function HomeContent() {
       </section>
 
       {/* Xit savdo / Best Sellers - like Texnomart "Xit savdo" */}
-      <section className="mt-4 px-3 md:px-6">
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
+      <section className="mt-4 px-2 sm:px-3 md:px-6">
+        <div className="bg-white rounded-xl p-3 md:p-4 border border-gray-100">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
             <h2 className="text-sm md:text-base font-bold text-gray-900 flex items-center gap-2">
               🔥 {lang === 'uz' ? 'Xit savdo' : 'Хит продаж'}
             </h2>
@@ -89,7 +89,7 @@ function HomeContent() {
               {t.home.seeAll} <ArrowRight size={12} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
             {featured.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>
@@ -97,9 +97,9 @@ function HomeContent() {
 
       {/* New arrivals */}
       {newProducts.length > 0 && (
-        <section className="mt-4 px-3 md:px-6">
-          <div className="bg-white rounded-xl p-4 border border-gray-100">
-            <div className="flex items-center justify-between mb-4">
+        <section className="mt-4 px-2 sm:px-3 md:px-6">
+          <div className="bg-white rounded-xl p-3 md:p-4 border border-gray-100">
+            <div className="flex items-center justify-between mb-3 md:mb-4">
               <h2 className="text-sm md:text-base font-bold text-gray-900 flex items-center gap-2">
                 ✨ {lang === 'uz' ? 'Yangi mahsulotlar' : 'Новинки'}
               </h2>
@@ -107,7 +107,7 @@ function HomeContent() {
                 {t.home.seeAll} <ArrowRight size={12} />
               </Link>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
               {newProducts.map(p => <ProductCard key={p.id} product={p} />)}
             </div>
           </div>
@@ -115,9 +115,9 @@ function HomeContent() {
       )}
 
       {/* All Products */}
-      <section className="mt-4 px-3 md:px-6 mb-6">
-        <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <div className="flex items-center justify-between mb-4">
+      <section className="mt-4 px-2 sm:px-3 md:px-6 mb-6">
+        <div className="bg-white rounded-xl p-3 md:p-4 border border-gray-100">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
             <h2 className="text-sm md:text-base font-bold text-gray-900">
               {lang === 'uz' ? 'Barcha mahsulotlar' : 'Все товары'}
             </h2>
@@ -125,7 +125,7 @@ function HomeContent() {
               {t.home.seeAll} <ArrowRight size={12} />
             </Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
             {allVisible.map(p => <ProductCard key={p.id} product={p} />)}
           </div>
         </div>

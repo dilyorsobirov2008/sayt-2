@@ -73,10 +73,10 @@ export function ProductCard({ product }: ProductCardProps) {
             </Link>
 
             {/* Info */}
-            <div className="px-3 pb-3 flex flex-col flex-1 gap-1">
+            <div className="px-2 sm:px-3 pb-2 sm:pb-3 flex flex-col flex-1 gap-1">
                 {/* Name */}
                 <Link href={`/product/${product.id}`}>
-                    <h3 className="text-xs text-gray-700 line-clamp-2 leading-snug hover:text-yellow-600 transition-colors min-h-[32px]">
+                    <h3 className="text-[11px] sm:text-xs text-gray-700 line-clamp-2 leading-snug hover:text-yellow-600 transition-colors min-h-[32px]">
                         {product.name}
                     </h3>
                 </Link>
@@ -84,20 +84,20 @@ export function ProductCard({ product }: ProductCardProps) {
                 {/* Rating */}
                 <div className="flex items-center gap-1">
                     <Star size={10} className="text-yellow-400 fill-yellow-400" />
-                    <span className="text-[10px] text-gray-400">{product.rating}</span>
+                    <span className="text-[9px] sm:text-[10px] text-gray-400">{product.rating}</span>
                 </div>
 
                 {/* Price section */}
                 <div className="mt-auto pt-1">
-                    <p className="text-sm font-extrabold text-gray-900 leading-tight">{formatPrice(product.price)}</p>
+                    <p className="text-xs sm:text-sm font-extrabold text-gray-900 leading-tight">{formatPrice(product.price)}</p>
                     {product.discountPercent && product.discountPercent > 0 && (
-                        <p className="text-[10px] line-through text-gray-400">
+                        <p className="text-[9px] sm:text-[10px] line-through text-gray-400">
                             {formatPrice(Math.ceil(product.price / (1 - product.discountPercent / 100)))}
                         </p>
                     )}
                     {/* Installment lines from global plans */}
                     {longestPlan && (
-                        <p className="text-[10px] text-gray-500 mt-0.5">
+                        <p className="text-[9px] sm:text-[10px] text-gray-500 mt-0.5 tracking-tight">
                             💳 {longestPlan.months} {lang === 'uz' ? 'oy' : 'мес'}
                             {longestPlan.interestPercent > 0 && <span className="text-blue-500"> (+{longestPlan.interestPercent}%)</span>}
                             : <span className="font-semibold text-gray-700">
@@ -112,7 +112,7 @@ export function ProductCard({ product }: ProductCardProps) {
                     <button
                         onClick={() => addToCart(product)}
                         disabled={!product.inStock}
-                        className={`w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[10px] font-semibold border transition-all ${product.inStock
+                        className={`w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-semibold border transition-all ${product.inStock
                             ? 'border-yellow-400 text-yellow-600 hover:bg-yellow-50'
                             : 'border-gray-200 text-gray-300 cursor-not-allowed'
                             }`}>
