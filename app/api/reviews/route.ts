@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 export const dynamic = 'force-dynamic';
 
 const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8516821604:AAEW4IT9CXtB6R9hcoeRcnsJygCVzQ-IhOo';
-const CHANNEL_ID = '-5025823520';
+const CHANNEL_ID = process.env.TELEGRAM_REVIEW_CHANNEL_ID || '-1005025823520'; // -100 kanal uchun kerak
 const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
 export async function GET() {
