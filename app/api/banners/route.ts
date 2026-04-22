@@ -119,6 +119,30 @@ export async function POST(request: Request) {
                     badgeRu: "Новинка",
                     link: "/catalog?category=smartwatches",
                     image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&q=80"
+                },
+                // 4. Promo Top
+                {
+                    title: "S24 Ultra",
+                    titleRu: "S24 Ultra",
+                    subtitle: "Samsung Galaxy",
+                    subtitleRu: "Samsung Galaxy",
+                    bg: "from-gray-900 to-gray-700",
+                    badge: "−30%",
+                    badgeRu: "−30%",
+                    link: "/catalog?category=smartphones&brand=Samsung",
+                    image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=300&q=80"
+                },
+                // 5. Promo Bottom
+                {
+                    title: "3-6-12",
+                    titleRu: "3-6-12",
+                    subtitle: "Muddatli to'lov",
+                    subtitleRu: "Рассрочка",
+                    bg: "from-yellow-400 to-yellow-300",
+                    badge: "oy",
+                    badgeRu: "мес",
+                    link: "/catalog",
+                    image: ""
                 }
             ];
             await prisma.banner.createMany({ data: seedBanners });
