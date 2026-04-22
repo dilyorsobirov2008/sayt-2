@@ -17,7 +17,7 @@ export default function HomePage() {
 }
 
 function HomeContent() {
-  const { lang, products } = useStore();
+  const { lang, products, banners } = useStore();
   const t = lang === 'uz' ? uz : ru;
   const featured = products.filter(p => p.isFeatured);
   const newProducts = products.filter(p => p.isNew);
