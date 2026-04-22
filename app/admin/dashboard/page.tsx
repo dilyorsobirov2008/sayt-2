@@ -1607,28 +1607,27 @@ export default function AdminDashboard() {
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {banners?.map(b => (
-                                <div key={b.id} className="bg-[#111] border border-[#1e1e1e] rounded-2xl overflow-hidden flex flex-col group relative">
-                                    <div className={`aspect-[2.5/1] w-full p-6 relative flex flex-col justify-center bg-gradient-to-br ${b.bg}`}>
-                                        <div className="flex justify-between items-start z-10 w-2/3">
-                                            <div>
-                                                <span className="text-white bg-black/30 px-2 py-0.5 rounded text-[10px] font-bold shadow-sm backdrop-blur-sm uppercase">Banner</span>
-                                                <h3 className="text-black font-extrabold text-2xl leading-tight mt-2">{b.title}</h3>
-                                                <p className="text-black/70 font-semibold text-xs mt-1">{b.subtitle || 'Tavsif yo\'q'}</p>
-                                            </div>
-                                        </div>
-                                        <div className="absolute right-0 top-0 bottom-0 w-1/2 flex items-center justify-end overflow-visible pr-4 md:pr-10">
-                                            {b.badge && (
-                                                <div className="absolute top-4 right-4 z-20 w-14 h-14 bg-[#FF0000] text-white rounded-full flex items-center justify-center font-extrabold text-sm rotate-12 shadow-xl border-4 border-black/10">
-                                                    {b.badge}
-                                                </div>
-                                            )}
-                                            {b.image && <img src={b.image} alt={b.title} className="max-h-[140%] max-w-[140%] object-contain drop-shadow-2xl z-10 transform translate-y-[10%]" />}
+                            {banners?.map((b: any) => (
+                                <div key={b.id} className="relative bg-[#111] border border-[#1e1e1e] rounded-2xl overflow-hidden flex flex-col group">
+                                    <div className={`p-5 flex flex-col justify-end min-h-[160px] relative w-full bg-gradient-to-br ${b.bg || 'from-gray-900 to-gray-700'}`}>
+                                        {/* Image layer */}
+                                        {b.image && (
+                                            <img
+                                                src={b.image}
+                                                alt={b.title}
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 h-[90%] w-auto object-contain drop-shadow-xl opacity-90 pointer-events-none z-0"
+                                            />
+                                        )}
+                                        {/* Content layer */}
+                                        <div className="relative z-10 w-2/3">
+                                            {b.badge && <p className="text-yellow-400 text-xs font-bold mb-1">{b.badge}</p>}
+                                            <p className="text-white text-lg font-extrabold leading-tight shadow-black drop-shadow-md">{b.title}</p>
+                                            <p className="text-white/80 text-xs font-semibold leading-tight mb-3 shadow-black drop-shadow-md">{b.subtitle}</p>
                                         </div>
                                     </div>
-                                    <div className="p-3 bg-[#111] flex justify-between items-center shadow-inner">
-                                        <p className="text-xs text-gray-500 truncate w-1/2">Link: {b.link}</p>
-                                        <div className="flex gap-2">
+                                    <div className="p-3 bg-[#111] flex justify-between items-center shadow-inner border-t border-[#1e1e1e]">
+                                        <p className="text-xs text-gray-500 truncate max-w-[40%]">Link: {b.link}</p>
+                                        <div className="flex gap-2 shrink-0">
                                             <button onClick={() => handleEditBannerClick(b)} className="text-blue-400 bg-blue-500/10 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-blue-500/20">O'zgartirish</button>
                                             <button onClick={() => handleDeleteBanner(b.id)} className="text-red-400 bg-red-500/10 px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-red-500/20">O'chirish</button>
                                         </div>

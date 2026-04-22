@@ -136,6 +136,7 @@ export const useStore = create<StoreState>()(
             orders: [] as any[],
             visitors: 0 as number,
             installmentPlans: [] as InstallmentPlan[],
+            banners: [] as Banner[],
             hasHydrated: false as boolean,
             setHasHydrated: (v: boolean) => set({ hasHydrated: v }),
             loading: false as boolean,
@@ -197,6 +198,14 @@ export const useStore = create<StoreState>()(
                 } catch (e) { console.error('fetchInstallmentPlans error:', e); }
             },
 
+            fetchBanners: async () => {
+                try {
+                    const res = await fetch('/api/banners', { cache: 'no-store' });
+                    const data = await res.json();
+                    set({ banners: data });
+                } catch (e) { console.error('fetchBanners error:', e); }
+            },
+
             fetchAll: async () => {
                 set({ loading: true });
                 await Promise.all([
@@ -204,6 +213,7 @@ export const useStore = create<StoreState>()(
                     get().fetchCategories(),
                     get().fetchBrands(),
                     get().fetchInstallmentPlans(),
+                    get().fetchBanners(),
                 ]);
                 set({ loading: false });
             },
@@ -215,6 +225,7 @@ export const useStore = create<StoreState>()(
             setOrders: (orders: any[]) => set({ orders }),
             setVisitors: (visitors: number) => set({ visitors }),
             setInstallmentPlans: (plans: InstallmentPlan[]) => set({ installmentPlans: plans }),
+            setBanners: (banners: Banner[]) => set({ banners }),
         }),
         {
             name: 'techshop-store',
