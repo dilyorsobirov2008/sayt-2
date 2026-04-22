@@ -1,7 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { CartItem, Product, Language, Category, Brand } from './types';
+import { CartItem, Product, Language, Category, Brand, Banner } from './types';
 
 export interface InstallmentPlan {
     id: number;
