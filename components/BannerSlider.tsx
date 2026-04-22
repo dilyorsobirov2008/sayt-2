@@ -6,9 +6,10 @@ import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import Link from 'next/link';
 import { useStore } from '@/lib/store';
+import { banners } from '@/lib/data'; // Importing original static banners
 
 export function BannerSlider() {
-    const { lang, banners } = useStore();
+    const { lang } = useStore();
 
     if (!banners || banners.length === 0) return null;
 
