@@ -189,21 +189,24 @@ export default function ProductPage() {
                         )}
                     </div>
 
-                    {/* ═══ COLOR VARIANTS ═══ */}
+                    {/* ═══ VARIANTS ═══ */}
                     {variants.length > 0 && (
-                        <div>
-                            <p className="text-sm font-bold text-gray-800 mb-2">
-                                {lang === 'uz' ? 'Rang tanlang:' : 'Выберите цвет:'}
-                                {selectedVariant && <span className="ml-2 font-normal text-gray-500">{lang === 'uz' ? selectedVariant.colorName : (selectedVariant.colorNameRu || selectedVariant.colorName)}</span>}
+                        <div className="mb-4">
+                            <p className="text-sm font-bold text-gray-800 mb-3">
+                                {lang === 'uz' ? 'Variant tanlang:' : 'Выберите вариант:'}
                             </p>
                             <div className="flex gap-2 flex-wrap">
-                                {variants.map(v => (
-                                    <button key={v.id}
-                                        onClick={() => setSelectedVariant(selectedVariant?.id === v.id ? null : v)}
-                                        title={lang === 'uz' ? v.colorName : (v.colorNameRu || v.colorName)}
-                                        className={`w-9 h-9 rounded-full border-4 transition-all ${selectedVariant?.id === v.id ? 'border-yellow-400 scale-110 shadow-md' : 'border-gray-200 hover:border-gray-400'}`}
-                                        style={{ backgroundColor: v.color }} />
-                                ))}
+                                {variants.map((v: Variant) => {
+                                    const isSelected = selectedVariant?.id === v.id;
+                                    const variantName = lang === 'uz' ? v.colorName : (v.colorNameRu || v.colorName);
+                                    return (
+                                        <button key={v.id}
+                                            onClick={() => setSelectedVariant(isSelected ? null : v)}
+                                            className={`px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-all ${isSelected ? 'border-yellow-400 bg-yellow-50 text-yellow-800 shadow-sm' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'}`}>
+                                            {variantName}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
