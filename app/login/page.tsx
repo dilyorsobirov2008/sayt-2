@@ -33,7 +33,8 @@ export default function LoginPage() {
             (loginEmail === 'abdujalil@gmail.com' && loginPass === 'abdujalil1234')
         ) {
             localStorage.setItem('admin_auth', 'true');
-            router.push('/admin/dashboard');
+            const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/admin/dashboard';
+            router.push(returnUrl);
             return;
         }
 
@@ -50,7 +51,8 @@ export default function LoginPage() {
                 localStorage.setItem('user_name', `${data.firstName} ${data.lastName}`.trim());
                 localStorage.setItem('user_email', data.email);
                 localStorage.setItem('user_phone', data.phone || '');
-                router.push('/profile');
+                const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/profile';
+                router.push(returnUrl);
             } else {
                 setLoginError(data.error || "Email yoki parol noto'g'ri!");
             }
@@ -80,7 +82,8 @@ export default function LoginPage() {
                 localStorage.setItem('user_email', data.email);
                 localStorage.setItem('user_phone', data.phone || '');
                 setRegSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz!");
-                setTimeout(() => router.push('/profile'), 1200);
+                const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/profile';
+                setTimeout(() => router.push(returnUrl), 1200);
             } else {
                 setRegError(data.error || "Xatolik yuz berdi!");
             }

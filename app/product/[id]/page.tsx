@@ -259,7 +259,18 @@ export default function ProductPage() {
 
                     {/* Cart + Fav */}
                     <div className="flex gap-3 mt-2">
-                        <button onClick={() => { useStore.getState().clearCart(); addToCart(product); router.push('/cart?direct=1'); }}
+                        <button onClick={() => { 
+                            if (typeof window !== 'undefined') {
+                                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                                if (!isAuth) {
+                                    router.push(`/login?returnUrl=/product/${product.id}`);
+                                    return;
+                                }
+                            }
+                            useStore.getState().clearCart(); 
+                            addToCart(product); 
+                            router.push('/cart?direct=1'); 
+                        }}
                             disabled={!product.inStock}
                             className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-extrabold text-base transition-all active:scale-95 ${product.inStock ? 'bg-yellow-400 hover:bg-yellow-500 text-black shadow-sm' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
                             <ShoppingCart size={20} />{lang === 'uz' ? 'Hoziroq xarid qilish' : 'Купить сейчас'}

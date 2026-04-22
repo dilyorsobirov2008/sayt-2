@@ -122,6 +122,13 @@ export function ProductCard({ product }: ProductCardProps) {
                     <button
                         onClick={(e) => {
                             e.preventDefault();
+                            if (typeof window !== 'undefined') {
+                                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                                if (!isAuth) {
+                                    router.push(`/login?returnUrl=/product/${product.id}`);
+                                    return;
+                                }
+                            }
                             useStore.getState().clearCart();
                             addToCart(product);
                             router.push('/cart?direct=1');
