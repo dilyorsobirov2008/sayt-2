@@ -10,6 +10,7 @@ export function Footer() {
         <footer className="bg-gray-900 text-gray-300 mt-8 pb-20 md:pb-0">
             <div className="max-w-7xl mx-auto px-6 py-10">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <div>
                         <p className="text-gray-400 text-xs mb-2 font-medium">
                             {lang === 'uz' ? 'Savolingiz bormi? Qo\'ng\'iroq qiling' : 'Есть вопросы? Позвоните'}
                         </p>
