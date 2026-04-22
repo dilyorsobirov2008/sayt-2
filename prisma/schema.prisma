@@ -149,5 +149,6 @@ model Banner {
   badgeRu    String?
   link       String?
   image      String?
+  type       String   @default("slider") // 'slider' or 'promo'
   createdAt  DateTime @default(now())
 }

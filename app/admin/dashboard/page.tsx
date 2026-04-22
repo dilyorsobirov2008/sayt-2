@@ -1607,8 +1607,26 @@ export default function AdminDashboard() {
                         )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {banners?.map((b: any) => (
-                                <div key={b.id} className="relative bg-[#111] border border-[#1e1e1e] rounded-2xl overflow-hidden flex flex-col group">
+                            {banners?.map((b: any, index: number) => {
+                                let positionLabel = `Asosiy Slayder ${index + 1}`;
+                                let bgClass = 'bg-blue-500 text-white';
+                                
+                                if (index === 3) {
+                                    positionLabel = "O'ng tomon (Yuqori)";
+                                    bgClass = 'bg-purple-500 text-white';
+                                } else if (index === 4) {
+                                    positionLabel = "O'ng tomon (Pastki)";
+                                    bgClass = 'bg-pink-500 text-white';
+                                } else if (index > 4) {
+                                    positionLabel = `Qo'shimcha Slayder ${index - 1}`;
+                                    bgClass = 'bg-blue-800 text-white';
+                                }
+
+                                return (
+                                <div key={b.id} className="relative bg-[#111] border border-[#1e1e1e] rounded-2xl overflow-hidden flex flex-col group mt-3">
+                                    <div className={`absolute -top-3 left-3 px-3 py-0.5 rounded-full text-[10px] font-bold z-20 shadow-lg border border-black/20 ${bgClass}`}>
+                                        {positionLabel}
+                                    </div>
                                     <div className={`p-5 flex flex-col justify-end min-h-[160px] relative w-full bg-gradient-to-br ${b.bg || 'from-gray-900 to-gray-700'}`}>
                                         {/* Image layer */}
                                         {b.image && (

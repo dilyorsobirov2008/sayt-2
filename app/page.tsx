@@ -32,36 +32,44 @@ function HomeContent() {
 
           {/* Right promo boxes - desktop only */}
           <div className="hidden md:flex flex-col gap-3">
-            <div className="flex-1 bg-gradient-to-b from-[#f8f9fa] to-[#e9ecef] rounded-xl p-5 flex flex-col justify-between min-h-[320px] relative overflow-hidden group">
-              {/* Background styling to look like a modern promo */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 opacity-50 z-0"></div>
-              
-              <div className="relative z-10 flex flex-col items-start">
-                <span className="bg-yellow-400 text-black text-[10px] font-black px-2.5 py-1 rounded-full uppercase tracking-wider mb-2 shadow-sm">
-                  {lang === 'uz' ? 'Yetkazib berish' : 'Доставка'}
-                </span>
-                <h3 className="text-gray-900 text-xl font-extrabold leading-tight">
-                  {lang === 'uz' ? 'Tezkor yetkazib berish' : 'Быстрая доставка'}
-                </h3>
-                <p className="text-gray-600 text-xs mt-2 font-medium">
-                  {lang === 'uz' ? "O'zbekiston bo'ylab 24 soat ichida" : "По всему Узбекистану за 24 часа"}
-                </p>
-              </div>
-
-              {/* Decorative elements representing delivery */}
-              <div className="absolute -right-4 -bottom-4 w-40 h-40 bg-yellow-400/20 rounded-full blur-2xl z-0"></div>
-              
-              <div className="relative z-10 mt-auto pt-6 flex justify-between items-end w-full">
-                <Link href="/catalog"
-                  className="bg-black hover:bg-gray-800 text-white text-xs font-bold px-4 py-2 rounded-lg transition-colors whitespace-nowrap shadow-lg">
-                  {lang === 'uz' ? "Batafsil" : "Подробнее"}
+            {banners.length >= 4 && banners[3] ? (
+              <div className={`flex-1 bg-gradient-to-br ${banners[3].bg || 'from-gray-900 to-gray-700'} rounded-xl p-5 flex flex-col justify-end min-h-[150px] relative overflow-hidden`}>
+                {banners[3].image && (
+                  <img
+                    src={banners[3].image}
+                    alt={banners[3].title}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 h-[90%] w-auto object-contain drop-shadow-xl opacity-90 pointer-events-none"
+                  />
+                )}
+                <p className="text-yellow-400 text-xs font-bold mb-1 relative z-10">{lang === 'uz' ? banners[3].subtitle : (banners[3].subtitleRu || banners[3].subtitle)}</p>
+                <p className="text-white text-lg font-extrabold leading-tight relative z-10">{lang === 'uz' ? banners[3].title : (banners[3].titleRu || banners[3].title)}<br />{lang === 'uz' ? banners[3].badge : (banners[3].badgeRu || banners[3].badge)}</p>
+                <Link href={banners[3].link || "/catalog"}
+                  className="mt-3 inline-block text-xs bg-yellow-400 text-black font-bold px-3 py-1.5 rounded-lg relative z-10 w-fit">
+                  {lang === 'uz' ? "Ko'rish" : "Смотреть"}
                 </Link>
-                {/* Minimalist icon instead of complex image */}
-                <div className="w-16 h-16 bg-white rounded-2xl shadow-xl flex items-center justify-center rotate-[-10deg] group-hover:rotate-0 transition-all duration-300">
-                    <span className="text-3xl">📦</span>
-                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex-1 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl p-5 flex flex-col justify-end min-h-[150px] relative overflow-hidden">
+                <p className="text-white text-sm">Promo 1 loading...</p>
+              </div>
+            )}
+
+            {banners.length >= 5 && banners[4] ? (
+              <div className={`flex-1 bg-gradient-to-br ${banners[4].bg || 'from-yellow-400 to-yellow-300'} rounded-xl p-5 flex flex-col justify-end min-h-[150px]`}>
+                <p className="text-black/60 text-xs font-bold mb-1">
+                  {lang === 'uz' ? banners[4].subtitle : (banners[4].subtitleRu || banners[4].subtitle)}
+                </p>
+                <p className="text-black text-lg font-extrabold leading-tight">{lang === 'uz' ? banners[4].title : (banners[4].titleRu || banners[4].title)}<br />{lang === 'uz' ? banners[4].badge : (banners[4].badgeRu || banners[4].badge)}</p>
+                <Link href={banners[4].link || "/catalog"}
+                  className="mt-3 inline-block text-xs bg-black text-yellow-400 font-bold px-3 py-1.5 rounded-lg w-fit">
+                  {lang === 'uz' ? "Xarid" : "Купить"}
+                </Link>
+              </div>
+            ) : (
+              <div className="flex-1 bg-gradient-to-br from-yellow-400 to-yellow-300 rounded-xl p-5 flex flex-col justify-end min-h-[150px]">
+                 <p className="text-black text-sm">Promo 2 loading...</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
