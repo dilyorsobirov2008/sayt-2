@@ -49,7 +49,7 @@ function HomeContent() {
               <p className="text-black/60 text-xs font-bold mb-1">
                 {lang === 'uz' ? "Muddatli to'lov" : "Рассрочка"}
               </p>
-              <p className="text-black text-lg font-extrabold leading-tight">0-0-24<br />{lang === 'uz' ? "oy" : "мес"}</p>
+              <p className="text-black text-lg font-extrabold leading-tight">3-6-12<br />{lang === 'uz' ? "oy" : "мес"}</p>
               <Link href="/catalog"
                 className="mt-3 inline-block text-xs bg-black text-yellow-400 font-bold px-3 py-1.5 rounded-lg">
                 {lang === 'uz' ? "Xarid" : "Купить"}
@@ -136,20 +136,8 @@ function HomeContent() {
         <div>
           <p className="text-yellow-400 text-xs font-bold mb-1">ashinde</p>
           <h3 className="text-xl md:text-2xl font-extrabold text-white">
-            {lang === 'uz' ? "0-0-24 muddatli to'lov!" : "Рассрочка 0-0-24!"}
+            {lang === 'uz' ? "3-6-12 muddatli to'lov!" : "Рассрочка 3-6-12!"}
           </h3>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <span className="text-gray-400 text-sm">{lang === 'uz' ? 'orqali:' : 'через:'}</span>
-            <span className="flex items-center justify-center w-8 h-8 rounded-lg bg-[#FFD600] font-black text-black text-sm shadow">U</span>
-            <svg width="52" height="24" viewBox="0 0 52 24" xmlns="http://www.w3.org/2000/svg">
-              <rect width="52" height="24" rx="5" fill="#1565C0" />
-              <text x="50%" y="16" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" fontFamily="Arial">CLICK</text>
-            </svg>
-            <svg width="60" height="24" viewBox="0 0 60 24" xmlns="http://www.w3.org/2000/svg">
-              <rect width="60" height="24" rx="5" fill="#00AAFF" />
-              <text x="50%" y="16" textAnchor="middle" fill="white" fontSize="12" fontWeight="bold" fontFamily="Arial">Payme</text>
-            </svg>
-          </div>
         </div>
         <Link href="/catalog"
           className="bg-yellow-400 hover:bg-yellow-300 text-black px-8 py-3 rounded-xl font-extrabold text-sm transition-colors whitespace-nowrap">
