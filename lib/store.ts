@@ -202,7 +202,11 @@ export const useStore = create<StoreState>()(
                 try {
                     const res = await fetch('/api/banners', { cache: 'no-store' });
                     const data = await res.json();
-                    set({ banners: data });
+                    if (data && Array.isArray(data.banners)) {
+                        set({ banners: data.banners });
+                    } else if (Array.isArray(data)) {
+                        set({ banners: data });
+                    }
                 } catch (e) { console.error('fetchBanners error:', e); }
             },
 
