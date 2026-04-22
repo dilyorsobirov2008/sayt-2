@@ -5,6 +5,46 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
     try {
+        const count = await prisma.banner.count();
+        if (count === 0) {
+            const seedBanners = [
+                {
+                    title: "Samsung Galaxy S24 Ultra",
+                    titleRu: "Samsung Galaxy S24 Ultra",
+                    subtitle: "Eng kuchli smartfon — chegirmada!",
+                    subtitleRu: "Самый мощный смартфон — со скидкой!",
+                    bg: "from-yellow-400 to-yellow-600",
+                    badge: "−30%",
+                    badgeRu: "−30%",
+                    link: "/catalog?category=smartphones",
+                    image: "https://images.unsplash.com/photo-1610945415295-d9bbf067e59c?w=500&q=80"
+                },
+                {
+                    title: "MacBook Pro M3",
+                    titleRu: "MacBook Pro M3",
+                    subtitle: "24 oyga muddatli to'lov bilan!",
+                    subtitleRu: "В рассрочку на 24 месяца!",
+                    bg: "from-slate-800 to-slate-600",
+                    badge: "24 oy",
+                    badgeRu: "24 мес",
+                    link: "/catalog?category=laptops",
+                    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=500&q=80"
+                },
+                {
+                    title: "Apple Watch Ultra 2",
+                    titleRu: "Apple Watch Ultra 2",
+                    subtitle: "Eng zo'r smartwatch — hozir buyurtma bering!",
+                    subtitleRu: "Лучшие смарт-часы — заказывайте сейчас!",
+                    bg: "from-gray-900 to-gray-700",
+                    badge: "Yangi",
+                    badgeRu: "Новинка",
+                    link: "/catalog?category=smartwatches",
+                    image: "https://images.unsplash.com/photo-1546868871-7041f2a55e12?w=500&q=80"
+                }
+            ];
+            await prisma.banner.createMany({ data: seedBanners });
+        }
+
         const banners = await prisma.banner.findMany({
             orderBy: { id: 'asc' },
         });
