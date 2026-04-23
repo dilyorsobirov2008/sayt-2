@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { formatPrice, calcInstallment, calcCreditPrice } from '@/lib/utils';
 import { Product, Category, Brand } from '@/lib/types';
-import { Plus, Pencil, Trash2, Upload, ImageIcon, X, Search, ShoppingCart, Heart, Star, Check, AlertCircle, Tag, FileSpreadsheet, Download, Info } from 'lucide-react';
+import { Plus, Pencil, Trash2, Upload, ImageIcon, X, Search, ShoppingCart, Heart, Star, Check, AlertCircle, Tag, FileSpreadsheet, Download, Info, XCircle } from 'lucide-react';
 
 // ─── Mock Orders with delete support ───
 const INITIAL_ORDERS = [
