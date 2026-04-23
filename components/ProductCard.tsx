@@ -111,12 +111,11 @@ export function ProductCard({ product }: ProductCardProps) {
                 <div className="mt-1.5 flex flex-col gap-1.5">
                     <button
                         onClick={() => {
-                            if (typeof window !== 'undefined') {
-                                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
-                                if (!isAuth) {
-                                    router.push(`/login?returnUrl=/product/${product.id}`);
-                                    return;
-                                }
+                            const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                            if (!isAuth) {
+                                alert(lang === 'uz' ? 'Savatchaga qo\'shish uchun avval tizimga kiring!' : 'Войдите в систему, чтобы добавить в корзину!');
+                                window.location.href = `/login?returnUrl=${encodeURIComponent('/product/' + product.id)}`;
+                                return;
                             }
                             addToCart(product);
                         }}
@@ -131,12 +130,11 @@ export function ProductCard({ product }: ProductCardProps) {
                     <button
                         onClick={(e) => {
                             e.preventDefault();
-                            if (typeof window !== 'undefined') {
-                                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
-                                if (!isAuth) {
-                                    router.push(`/login?returnUrl=/product/${product.id}`);
-                                    return;
-                                }
+                            const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                            if (!isAuth) {
+                                alert(lang === 'uz' ? 'Sotib olish uchun avval tizimga kiring!' : 'Войдите в систему, чтобы купить!');
+                                window.location.href = `/login?returnUrl=${encodeURIComponent('/product/' + product.id)}`;
+                                return;
                             }
                             useStore.getState().clearCart();
                             addToCart(product);

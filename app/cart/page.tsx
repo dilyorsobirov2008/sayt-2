@@ -28,8 +28,8 @@ export default function CartPage() {
             if (window.location.search.includes('direct=1')) {
                 const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
                 if (!isAuth) {
-                    alert('Sotib olish uchun avval tizimga kiring');
-                    router.push('/login?returnUrl=/cart?direct=1');
+                    alert(lang === 'uz' ? 'Sotib olish uchun avval tizimga kiring!' : 'Войдите в систему, чтобы купить!');
+                    window.location.href = `/login?returnUrl=${encodeURIComponent('/cart?direct=1')}`;
                     return;
                 }
                 setStep('form');
@@ -108,6 +108,13 @@ export default function CartPage() {
     };
 
     const handleOrder = async () => {
+        // Auth tekshiruv — oxirgi himoya
+        const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+        if (!isAuth) {
+            alert(lang === 'uz' ? 'Buyurtma berish uchun avval tizimga kiring!' : 'Войдите в систему, чтобы оформить заказ!');
+            window.location.href = `/login?returnUrl=${encodeURIComponent('/cart')}`;
+            return;
+        }
         if (!form.name.trim() || !form.phone.trim()) {
             alert(lang === 'uz' ? 'Ism va telefon raqamini kiriting!' : 'Введите имя и номер телефона!');
             return;
@@ -258,6 +265,12 @@ export default function CartPage() {
 
     // ── ORDER FORM ──
     if (step === 'form') {
+        // Auth guard — agar auth yo'q bo'lsa, login ga yo'naltir
+        const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+        if (!isAuth) {
+            window.location.href = `/login?returnUrl=${encodeURIComponent('/cart')}`;
+            return null;
+        }
         return (
             <div className="max-w-lg mx-auto px-4 py-6">
                 <button onClick={() => setStep('cart')}
@@ -581,8 +594,8 @@ export default function CartPage() {
                             onClick={() => {
                                 const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
                                 if (!isAuth) {
-                                    alert('Sotib olish uchun avval tizimga kiring');
-                                    router.push('/login?returnUrl=/cart');
+                                    alert(lang === 'uz' ? 'Buyurtma berish uchun avval tizimga kiring!' : 'Войдите в систему, чтобы оформить заказ!');
+                                    window.location.href = `/login?returnUrl=${encodeURIComponent('/cart')}`;
                                     return;
                                 }
                                 setStep('form');

@@ -278,12 +278,11 @@ export default function ProductPage() {
                     {/* Cart + Fav */}
                     <div className="flex gap-3 mt-2">
                         <button onClick={() => { 
-                            if (typeof window !== 'undefined') {
-                                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
-                                if (!isAuth) {
-                                    router.push(`/login?returnUrl=/product/${product.id}`);
-                                    return;
-                                }
+                            const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                            if (!isAuth) {
+                                alert(lang === 'uz' ? 'Sotib olish uchun avval tizimga kiring!' : 'Войдите в систему, чтобы купить!');
+                                window.location.href = `/login?returnUrl=${encodeURIComponent('/product/' + product.id)}`;
+                                return;
                             }
                             useStore.getState().clearCart(); 
                             addToCart(product); 
