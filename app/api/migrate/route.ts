@@ -67,6 +67,48 @@ export async function GET() {
     `);
     results.push('✅ ProductVariant foreign key qo\'shildi');
 
+    // Review jadvalini yaratish
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Review" (
+        "id" SERIAL NOT NULL,
+        "productId" INTEGER NOT NULL,
+        "userId" INTEGER,
+        "userName" TEXT NOT NULL,
+        "rating" INTEGER NOT NULL,
+        "comment" TEXT NOT NULL,
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "Review_pkey" PRIMARY KEY ("id")
+      );
+    `);
+    results.push('✅ Review jadvali yaratildi');
+
+    // Review foreign keys qo'shish
+    await prisma.$executeRawUnsafe(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'Review_productId_fkey'
+        ) THEN
+          ALTER TABLE "Review"
+            ADD CONSTRAINT "Review_productId_fkey"
+            FOREIGN KEY ("productId") REFERENCES "Product"("id")
+            ON DELETE CASCADE ON UPDATE CASCADE;
+        END IF;
+
+        IF NOT EXISTS (
+          SELECT 1 FROM information_schema.table_constraints
+          WHERE constraint_name = 'Review_userId_fkey'
+        ) THEN
+          ALTER TABLE "Review"
+            ADD CONSTRAINT "Review_userId_fkey"
+            FOREIGN KEY ("userId") REFERENCES "User"("id")
+            ON DELETE SET NULL ON UPDATE CASCADE;
+        END IF;
+      END $$;
+    `);
+    results.push('✅ Review foreign keys qo\'shildi');
+
     return NextResponse.json({
       success: true,
       message: 'Migration muvaffaqiyatli bajarildi!',
