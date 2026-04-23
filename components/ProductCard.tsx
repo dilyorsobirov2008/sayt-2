@@ -125,6 +125,7 @@ export function ProductCard({ product }: ProductCardProps) {
                             if (typeof window !== 'undefined') {
                                 const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
                                 if (!isAuth) {
+                                    alert('Sotib olish uchun avval tizimga kiring');
                                     router.push(`/login?returnUrl=/product/${product.id}`);
                                     return;
                                 }

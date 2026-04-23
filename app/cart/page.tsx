@@ -28,6 +28,7 @@ export default function CartPage() {
             if (window.location.search.includes('direct=1')) {
                 const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
                 if (!isAuth) {
+                    alert('Sotib olish uchun avval tizimga kiring');
                     router.push('/login?returnUrl=/cart?direct=1');
                     return;
                 }
@@ -166,10 +167,12 @@ export default function CartPage() {
             const dateStr = now.toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' });
             const productNames = cart.map(i => `${i.product.name} × ${i.quantity}`).join(', ');
             try {
-                await fetch('/api/orders', {
+                const userId = localStorage.getItem('user_id');
+                const orderRes = await fetch('/api/orders', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
+                        userId: userId || null,
                         customer: `${form.name} ${form.surname}`.trim(),
                         phone: '+998' + form.phone,
                         product: productNames,
@@ -182,8 +185,20 @@ export default function CartPage() {
                         telegramSent: telegramSuccess,
                     }),
                 });
+                
+                if (!orderRes.ok) {
+                    const errData = await orderRes.json();
+                    if (orderRes.status === 401) {
+                        alert('Xatolik: ' + (errData.error || 'Sotib olish uchun avval tizimga kiring.'));
+                        router.push('/login?returnUrl=/cart');
+                        setSending(false);
+                        return;
+                    }
+                    throw new Error(errData.error || 'Buyurtma yaratishda xato');
+                }
             } catch (dbErr) {
                 console.error('Buyurtma saqlashda xato:', dbErr);
+                throw dbErr; // let the outer catch block handle the general error
             }
 
             clearCart();
@@ -566,6 +581,7 @@ export default function CartPage() {
                             onClick={() => {
                                 const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
                                 if (!isAuth) {
+                                    alert('Sotib olish uchun avval tizimga kiring');
                                     router.push('/login?returnUrl=/cart');
                                     return;
                                 }

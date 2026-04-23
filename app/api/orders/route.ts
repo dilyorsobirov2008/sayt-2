@@ -16,6 +16,15 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
+
+        if (!body.userId) {
+            return NextResponse.json({ error: "Unauthorized: Sotib olish uchun avval tizimga kiring." }, { status: 401 });
+        }
+        const user = await prisma.user.findUnique({ where: { id: parseInt(body.userId, 10) } });
+        if (!user) {
+            return NextResponse.json({ error: "Unauthorized: Noto'g'ri foydalanuvchi." }, { status: 401 });
+        }
+
         const order = await prisma.order.create({
             data: {
                 customer: body.customer,
