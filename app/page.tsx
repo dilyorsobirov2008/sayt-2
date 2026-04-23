@@ -27,67 +27,8 @@ function HomeContent() {
     <div className="max-w-7xl mx-auto">
       {/* Banner + Categories row (like Texnomart: side by side on desktop) */}
       <section className="px-2 sm:px-3 md:px-6 pt-3 md:pt-4 md:pt-5">
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_260px] gap-3 md:gap-4">
+        <div>
           <BannerSlider />
-
-          {/* Right promo boxes - desktop only */}
-          <div className="hidden md:flex flex-col gap-3">
-            {banners.length >= 4 && banners[3] ? (
-              <div className={`flex-1 bg-gradient-to-br ${banners[3].bg || 'from-gray-900 to-gray-700'} rounded-xl p-5 flex flex-col justify-end min-h-[150px] relative overflow-hidden`}>
-                {banners[3].image && (
-                  <img
-                    src={banners[3].image}
-                    alt={banners[3].title}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 h-[90%] w-auto object-contain drop-shadow-xl opacity-90 pointer-events-none"
-                  />
-                )}
-                <p className="text-yellow-400 text-xs font-bold mb-1 relative z-10">{lang === 'uz' ? banners[3].subtitle : (banners[3].subtitleRu || banners[3].subtitle)}</p>
-                <p className="text-white text-lg font-extrabold leading-tight relative z-10">{lang === 'uz' ? banners[3].title : (banners[3].titleRu || banners[3].title)}<br />{lang === 'uz' ? banners[3].badge : (banners[3].badgeRu || banners[3].badge)}</p>
-                <Link href={banners[3].link || "/catalog"}
-                  className="mt-3 inline-block text-xs bg-yellow-400 text-black font-bold px-3 py-1.5 rounded-lg relative z-10 w-fit">
-                  {lang === 'uz' ? "Ko'rish" : "Смотреть"}
-                </Link>
-              </div>
-            ) : (
-              <div className="flex-1 bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl p-5 flex flex-col justify-end min-h-[150px] relative overflow-hidden">
-                <img
-                  src="https://texnomart.uz/_nuxt/img/delivery-sm.36fc0e5.svg"
-                  alt="Delivery"
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-20 w-auto opacity-50 pointer-events-none"
-                />
-                <p className="text-yellow-400 text-xs font-bold mb-1 relative z-10">{lang === 'uz' ? "Tezkor" : "Быстрая"}</p>
-                <p className="text-white text-lg font-extrabold leading-tight relative z-10">{lang === 'uz' ? "Yetkazib" : "Доставка"}<br />{lang === 'uz' ? "berish" : "по всему Узб"}</p>
-                <Link href="/catalog"
-                  className="mt-3 inline-block text-xs bg-yellow-400 text-black font-bold px-3 py-1.5 rounded-lg relative z-10 w-fit">
-                  {lang === 'uz' ? "Batafsil" : "Подробнее"}
-                </Link>
-              </div>
-            )}
-
-            {banners.length >= 5 && banners[4] ? (
-              <div className={`flex-1 bg-gradient-to-br ${banners[4].bg || 'from-yellow-400 to-yellow-300'} rounded-xl p-5 flex flex-col justify-end min-h-[150px]`}>
-                <p className="text-black/60 text-xs font-bold mb-1">
-                  {lang === 'uz' ? banners[4].subtitle : (banners[4].subtitleRu || banners[4].subtitle)}
-                </p>
-                <p className="text-black text-lg font-extrabold leading-tight">{lang === 'uz' ? banners[4].title : (banners[4].titleRu || banners[4].title)}<br />{lang === 'uz' ? banners[4].badge : (banners[4].badgeRu || banners[4].badge)}</p>
-                <Link href={banners[4].link || "/catalog"}
-                  className="mt-3 inline-block text-xs bg-black text-yellow-400 font-bold px-3 py-1.5 rounded-lg w-fit">
-                  {lang === 'uz' ? "Xarid" : "Купить"}
-                </Link>
-              </div>
-            ) : (
-              <div className="flex-1 bg-gradient-to-br from-yellow-400 to-yellow-300 rounded-xl p-5 flex flex-col justify-end min-h-[150px]">
-                <p className="text-black/60 text-xs font-bold mb-1">
-                  {lang === 'uz' ? "Smartfonlar" : "Смартфоны"}
-                </p>
-                <p className="text-black text-lg font-extrabold leading-tight">Samsung<br />Galaxy S24</p>
-                <Link href="/catalog"
-                  className="mt-3 inline-block text-xs bg-black text-yellow-400 font-bold px-3 py-1.5 rounded-lg w-fit">
-                  {lang === 'uz' ? "Xarid" : "Купить"}
-                </Link>
-              </div>
-            )}
-          </div>
         </div>
       </section>
 

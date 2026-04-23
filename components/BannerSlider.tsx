@@ -12,8 +12,7 @@ export function BannerSlider() {
     const { lang, banners } = useStore();
     
     // Use dynamic if we have any, else fallback to static
-    let sliderBanners = banners && banners.length > 3 ? banners.slice(0, banners.length - 2) : banners;
-    const finalBanners = sliderBanners && sliderBanners.length > 0 ? sliderBanners : staticBanners;
+    const finalBanners = banners && banners.length > 0 ? banners : staticBanners;
 
     if (!finalBanners || finalBanners.length === 0) return null;
 
