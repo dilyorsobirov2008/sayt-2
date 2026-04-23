@@ -110,7 +110,16 @@ export function ProductCard({ product }: ProductCardProps) {
                 {/* Buttons */}
                 <div className="mt-1.5 flex flex-col gap-1.5">
                     <button
-                        onClick={() => addToCart(product)}
+                        onClick={() => {
+                            if (typeof window !== 'undefined') {
+                                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                                if (!isAuth) {
+                                    router.push(`/login?returnUrl=/product/${product.id}`);
+                                    return;
+                                }
+                            }
+                            addToCart(product);
+                        }}
                         disabled={!product.inStock}
                         className={`w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[9px] sm:text-[10px] font-semibold border transition-all ${product.inStock
                             ? 'border-yellow-400 text-yellow-600 hover:bg-yellow-50'
@@ -125,7 +134,6 @@ export function ProductCard({ product }: ProductCardProps) {
                             if (typeof window !== 'undefined') {
                                 const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
                                 if (!isAuth) {
-                                    alert('Sotib olish uchun avval tizimga kiring');
                                     router.push(`/login?returnUrl=/product/${product.id}`);
                                     return;
                                 }
