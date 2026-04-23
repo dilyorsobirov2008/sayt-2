@@ -1,6 +1,7 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
 import { uz, ru } from '@/lib/i18n';
@@ -16,6 +17,7 @@ export default function CartPage() {
     const { cart, lang, removeFromCart, updateQuantity, cartTotal, clearCart, installmentPlans } = useStore();
     const t = lang === 'uz' ? uz : ru;
     const total = cartTotal();
+    const router = useRouter();
 
     const activePlans = installmentPlans.filter(p => p.isActive).sort((a, b) => a.months - b.months);
 
@@ -24,6 +26,11 @@ export default function CartPage() {
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (window.location.search.includes('direct=1')) {
+                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                if (!isAuth) {
+                    router.push('/login?returnUrl=/cart?direct=1');
+                    return;
+                }
                 setStep('form');
             }
 
@@ -46,7 +53,7 @@ export default function CartPage() {
                 }));
             }
         }
-    }, []);
+    }, [router]);
     const [sending, setSending] = useState(false);
     const [locationLoading, setLocationLoading] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit'>('cash');
@@ -556,7 +563,14 @@ export default function CartPage() {
                         </div>
 
                         <button
-                            onClick={() => setStep('form')}
+                            onClick={() => {
+                                const isAuth = localStorage.getItem('user_auth') === 'true' || localStorage.getItem('admin_auth') === 'true';
+                                if (!isAuth) {
+                                    router.push('/login?returnUrl=/cart');
+                                    return;
+                                }
+                                setStep('form');
+                            }}
                             className="w-full bg-yellow-400 hover:bg-yellow-500 active:scale-95 text-black font-extrabold py-4 rounded-2xl text-base transition-all flex items-center justify-center gap-2">
                             {lang === 'uz' ? 'Buyurtma berish' : 'Оформить заказ'}
                             <ChevronRight size={18} />

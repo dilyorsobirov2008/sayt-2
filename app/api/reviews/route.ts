@@ -32,10 +32,13 @@ export async function POST(req: NextRequest) {
 
     const ratingNum = Math.max(1, Math.min(5, parseInt(rating)));
 
+    const parsedUserId = userId ? parseInt(userId, 10) : null;
+    const safeUserId = (parsedUserId !== null && !isNaN(parsedUserId)) ? parsedUserId : null;
+
     const review = await prisma.review.create({
       data: {
         productId: Number(productId),
-        userId: userId ? Number(userId) : null,
+        userId: safeUserId,
         userName: userName || 'Anonim',
         rating: ratingNum,
         comment: comment || '',
@@ -43,13 +46,15 @@ export async function POST(req: NextRequest) {
     });
 
     const allReviews = await prisma.review.findMany({ where: { productId: Number(productId) } });
-    const avgRating = allReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / allReviews.length;
+    const avgRating = allReviews.length > 0 
+      ? allReviews.reduce((acc: number, r: any) => acc + r.rating, 0) / allReviews.length 
+      : ratingNum;
     
     await prisma.product.update({
       where: { id: Number(productId) },
       data: { 
         reviewCount: allReviews.length, 
-        rating: Number(avgRating.toFixed(1)) 
+        rating: Number(avgRating.toFixed(1)) || 5.0
       }
     });
 
