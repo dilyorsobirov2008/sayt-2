@@ -29,15 +29,37 @@ export async function DELETE(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const id = searchParams.get('id');
+        const userId = searchParams.get('userId');
+
         if (!id) return NextResponse.json({ error: "ID kerak" }, { status: 400 });
-        
-        const review = await prisma.review.delete({
-            where: { id: Number(id) }
-        });
-        
-        // Could also update the product rating here if we wanted to be perfectly mathematically rigorous
-        // For now, let's just delete the review
-        return NextResponse.json({ success: true, review });
+
+        // Avval sharhni topamiz
+        const review = await prisma.review.findUnique({ where: { id: Number(id) } });
+        if (!review) return NextResponse.json({ error: "Sharh topilmadi" }, { status: 404 });
+
+        // Agar userId kelsa, faqat o'z sharhini o'chira oladi
+        if (userId) {
+            const parsedUserId = parseInt(userId, 10);
+            if (!isNaN(parsedUserId) && review.userId !== parsedUserId) {
+                return NextResponse.json({ error: "Bu sharhni o'chirishga ruxsat yo'q" }, { status: 403 });
+            }
+        }
+
+        await prisma.review.delete({ where: { id: Number(id) } });
+
+        // Mahsulot reytingini yangilash
+        if (review.productId) {
+            const remaining = await prisma.review.findMany({ where: { productId: review.productId } });
+            const avgRating = remaining.length > 0
+                ? remaining.reduce((acc: number, r: any) => acc + r.rating, 0) / remaining.length
+                : 5.0;
+            await prisma.product.update({
+                where: { id: review.productId },
+                data: { reviewCount: remaining.length, rating: Number(avgRating.toFixed(1)) }
+            });
+        }
+
+        return NextResponse.json({ success: true });
     } catch (e: any) {
         return NextResponse.json({ error: e.message }, { status: 500 });
     }

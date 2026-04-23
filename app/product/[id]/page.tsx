@@ -10,7 +10,7 @@ import { ShoppingCart, Heart, Star, ArrowLeft, CheckCircle, XCircle, Send, Chevr
 import { ProductCard } from '@/components/ProductCard';
 
 interface Variant { id: number; color: string; colorName: string; colorNameRu: string | null; image: string | null; }
-interface Review { id: number; userName: string; rating: number; comment: string; createdAt: string; }
+interface Review { id: number; userName: string; rating: number; comment: string; createdAt: string; userId?: number | null; }
 
 export default function ProductPage() {
     const { id } = useParams();
@@ -395,22 +395,45 @@ export default function ProductPage() {
                         </div>
                     ) : (
                         <div className="space-y-4">
-                            {reviews.map(review => (
+                            {reviews.map(review => {
+                                const isMyReview = userId && review.userId && String(review.userId) === String(userId);
+                                return (
                                 <div key={review.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
                                         <div>
                                             <p className="font-bold text-gray-900">{review.userName}</p>
                                             <p className="text-xs text-gray-400">{new Date(review.createdAt).toLocaleDateString()}</p>
                                         </div>
-                                        <div className="flex text-yellow-400">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} size={14} className={i < review.rating ? 'fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
-                                            ))}
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex text-yellow-400">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star key={i} size={14} className={i < review.rating ? 'fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
+                                                ))}
+                                            </div>
+                                            {isMyReview && (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm(lang === 'uz' ? 'Sharhni o\'chirasizmi?' : 'Удалить отзыв?')) return;
+                                                        try {
+                                                            const res = await fetch(`/api/reviews?id=${review.id}&userId=${userId}`, { method: 'DELETE' });
+                                                            if (res.ok) {
+                                                                setReviews(prev => prev.filter(r => r.id !== review.id));
+                                                            } else {
+                                                                alert(lang === 'uz' ? 'O\'chirishda xatolik!' : 'Ошибка при удалении!');
+                                                            }
+                                                        } catch { alert('Xatolik!'); }
+                                                    }}
+                                                    className="text-xs text-red-400 hover:text-red-600 hover:bg-red-50 px-2 py-1 rounded-lg transition-colors font-medium border border-red-100 hover:border-red-200"
+                                                >
+                                                    {lang === 'uz' ? 'O\'chirish' : 'Удалить'}
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
                                     <p className="text-gray-700 text-sm mt-3">{review.comment}</p>
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     )}
                 </div>
