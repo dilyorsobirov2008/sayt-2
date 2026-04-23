@@ -54,7 +54,11 @@ export async function POST(req: NextRequest) {
     const ratingNum = Math.max(1, Math.min(5, parseInt(rating)));
 
     const parsedUserId = userId ? parseInt(userId, 10) : null;
-    const safeUserId = (parsedUserId !== null && !isNaN(parsedUserId)) ? parsedUserId : null;
+    let safeUserId = (parsedUserId !== null && !isNaN(parsedUserId)) ? parsedUserId : null;
+    if (safeUserId) {
+        const userExists = await prisma.user.findUnique({ where: { id: safeUserId } });
+        if (!userExists) safeUserId = null;
+    }
 
     const review = await prisma.review.create({
       data: {

@@ -108,13 +108,21 @@ export default function ProductPage() {
                     comment: reviewText,
                 }),
             });
+            const data = await res.json();
             if (res.ok) {
                 setReviewText('');
                 setReviewRating(5);
                 setSubmitSuccess(true);
+                // add the new review to the local state so it appears immediately!
+                setReviews([data.review, ...reviews]);
                 setTimeout(() => setSubmitSuccess(false), 4000);
+            } else {
+                alert("Xatolik: " + data.error);
             }
-        } catch (err) { console.error(err); }
+        } catch (err: any) { 
+            console.error(err); 
+            alert('Tarmoq xatosi: ' + err?.message);
+        }
         setSubmitting(false);
     };
 
