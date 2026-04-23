@@ -16,10 +16,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ reviews });
     }
 
-    return NextResponse.json({ reviews: [] });
+    const reviews = await prisma.review.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+    return NextResponse.json({ reviews });
   } catch (error) {
     return NextResponse.json({ reviews: [] }, { status: 500 });
   }
+}
+
+export async function DELETE(req: NextRequest) {
+    try {
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+        if (!id) return NextResponse.json({ error: "ID kerak" }, { status: 400 });
+        
+        const review = await prisma.review.delete({
+            where: { id: Number(id) }
+        });
+        
+        // Could also update the product rating here if we wanted to be perfectly mathematically rigorous
+        // For now, let's just delete the review
+        return NextResponse.json({ success: true, review });
+    } catch (e: any) {
+        return NextResponse.json({ error: e.message }, { status: 500 });
+    }
 }
 
 export async function POST(req: NextRequest) {

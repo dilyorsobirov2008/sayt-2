@@ -55,6 +55,7 @@ const TABS = [
     { id: 'categories', label: 'Kategoriyalar' },
     { id: 'brands', label: 'Brendlar' },
     { id: 'banners', label: 'Bannerlar' },
+    { id: 'reviews', label: '💬 Sharhlar' },
     { id: 'excel-import', label: '📥 Excel Import' },
     { id: 'users', label: 'Foydalanuvchilar' },
 ];
@@ -100,6 +101,15 @@ export default function AdminDashboard() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isGeneratingSpecs, setIsGeneratingSpecs] = useState(false);
 
+    // Reviews states
+    const [allReviews, setAllReviews] = useState<any[]>([]);
+    const fetchAllReviews = () => {
+        fetch('/api/reviews')
+            .then(r => r.json())
+            .then(data => setAllReviews(data.reviews || []))
+            .catch(() => {});
+    };
+
     useEffect(() => {
         if (typeof window !== 'undefined' && localStorage.getItem('admin_auth') !== 'true') {
             router.replace('/login');
@@ -110,6 +120,7 @@ export default function AdminDashboard() {
         fetchVisitors();
         fetchInstallmentPlans();
         fetchBanners();
+        fetchAllReviews(); // fetch reviews
     }, [router]);
 
     const showToast = (msg: string) => {
@@ -1911,6 +1922,72 @@ export default function AdminDashboard() {
                                     <p className="text-red-400 font-bold text-sm">Import xatosi</p>
                                     <p className="text-red-400/70 text-sm mt-1">{excelResult.error}</p>
                                 </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* ── REVIEWS ── */}
+                {activeTab === 'reviews' && (
+                    <div className="animate-fadeIn">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-xl font-bold text-white">Barcha sharhlar</h2>
+                            <button onClick={fetchAllReviews} className="text-sm bg-[#1e1e1e] hover:bg-[#2a2a2a] text-white px-4 py-2 rounded-xl transition-colors">
+                                Yangilash
+                            </button>
+                        </div>
+                        {allReviews.length === 0 ? (
+                            <div className="text-center text-gray-500 py-10 bg-[#111] border border-[#1e1e1e] rounded-2xl">
+                                Hali sharhlar yo'q.
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {allReviews.map(review => {
+                                    const prod = products.find(p => p.id === review.productId);
+                                    return (
+                                        <div key={review.id} className="bg-[#111] border border-[#1e1e1e] rounded-2xl p-5 hover:border-[#333] transition-colors relative group">
+                                            <div className="flex justify-between items-start mb-3">
+                                                <div>
+                                                    <p className="font-bold text-white">{review.userName}</p>
+                                                    <p className="text-xs text-gray-500">{new Date(review.createdAt).toLocaleDateString()}</p>
+                                                </div>
+                                                <div className="flex text-yellow-400">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star key={i} size={14} className={i < review.rating ? 'fill-yellow-400' : 'text-gray-600 fill-gray-600'} />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            {prod && (
+                                                <div className="mb-3">
+                                                    <Link href={`/product/${prod.id}`} className="text-xs text-blue-400 hover:underline line-clamp-1">
+                                                        📦 {prod.name}
+                                                    </Link>
+                                                </div>
+                                            )}
+                                            <p className="text-gray-300 text-sm line-clamp-4">{review.comment}</p>
+                                            
+                                            <button 
+                                                onClick={() => {
+                                                    if (confirm("Rostdan ham bu sharhni o'chirmoqchimisiz?")) {
+                                                        fetch(`/api/reviews?id=${review.id}`, { method: 'DELETE' })
+                                                            .then(res => res.json())
+                                                            .then(data => {
+                                                                if (data.success) {
+                                                                    setAllReviews(prev => prev.filter(r => r.id !== review.id));
+                                                                    showToast("Sharh o'chirildi");
+                                                                } else {
+                                                                    showToast("Xatolik: " + data.error);
+                                                                }
+                                                            }).catch(() => showToast("Xatolik yuz berdi"));
+                                                    }
+                                                }}
+                                                className="absolute top-4 right-4 bg-red-500/10 text-red-400 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                                            >
+                                                <XCircle size={16} />
+                                            </button>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

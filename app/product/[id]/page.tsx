@@ -314,6 +314,25 @@ export default function ProductPage() {
                             {lang === 'uz' ? 'Rahmat! Fikringiz qabul qilindi.' : 'Спасибо! Ваше мнение принято.'}
                         </p>
                     </div>
+                ) : !isLoggedIn ? (
+                    <div className="bg-white border border-gray-100 rounded-2xl p-8 text-center shadow-sm">
+                        <div className="w-16 h-16 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <Star size={32} />
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            {lang === 'uz' ? 'Sharh qoldirish uchun tizimga kiring' : 'Войдите, чтобы оставить отзыв'}
+                        </h3>
+                        <p className="text-gray-500 text-sm mb-6 max-w-sm mx-auto">
+                            {lang === 'uz' 
+                                ? 'Faqat ro\'yxatdan o\'tgan foydalanuvchilar o\'z fikrlarini yozib qoldirishlari mumkin.' 
+                                : 'Оставлять отзывы могут только зарегистрированные пользователи.'}
+                        </p>
+                        <Link href={`/login?returnUrl=/product/${product.id}`}
+                            className="inline-flex items-center gap-2 bg-yellow-400 hover:bg-yellow-500 text-black font-bold px-6 py-3 rounded-xl transition-all active:scale-95">
+                            <LogIn size={18} />
+                            {lang === 'uz' ? 'Tizimga kirish' : 'Войти'}
+                        </Link>
+                    </div>
                 ) : (
                     <div className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm">
                         <form onSubmit={handleReviewSubmit} className="space-y-4">
@@ -343,6 +362,40 @@ export default function ProductPage() {
                         </form>
                     </div>
                 )}
+
+                {/* REVIEWS LIST */}
+                <div className="mt-8 space-y-4">
+                    <h3 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-4">
+                        {lang === 'uz' ? 'Barcha sharhlar' : 'Все отзывы'} <span className="text-gray-400 text-base font-normal ml-2">({reviews.length})</span>
+                    </h3>
+                    
+                    {reviewsLoading ? (
+                        <div className="text-center text-gray-400 py-8 text-sm">...</div>
+                    ) : reviews.length === 0 ? (
+                        <div className="text-center text-gray-500 py-10 bg-gray-50 border border-gray-100 rounded-2xl">
+                            {lang === 'uz' ? 'Hali sharhlar yo\'q. Birinchi bo\'lib sharh qoldiring!' : 'Пока нет отзывов. Оставьте первый отзыв!'}
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {reviews.map(review => (
+                                <div key={review.id} className="bg-white border border-gray-100 rounded-2xl p-5 shadow-sm">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div>
+                                            <p className="font-bold text-gray-900">{review.userName}</p>
+                                            <p className="text-xs text-gray-400">{new Date(review.createdAt).toLocaleDateString()}</p>
+                                        </div>
+                                        <div className="flex text-yellow-400">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star key={i} size={14} className={i < review.rating ? 'fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-700 text-sm mt-3">{review.comment}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
 
             {/* Similar */}
