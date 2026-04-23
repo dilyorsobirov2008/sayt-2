@@ -169,20 +169,30 @@ export default function ProductPage() {
                     )}
                 </div>
 
-                {/* ═══ INFO ═══ */}
-                <div className="flex flex-col gap-5">
-                    <div>
-                        <span className="text-xs text-yellow-600 font-bold uppercase tracking-wider">{product.brand}</span>
-                        <h1 className="text-2xl md:text-3xl font-extrabold mt-1 leading-tight text-gray-900">{product.name}</h1>
-                        <div className="flex items-center gap-2 mt-2.5">
-                            <div className="flex items-center gap-1">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star key={i} size={16} className={i < Math.floor(product.rating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
-                                ))}
+                    {/* ═══ INFO ═══ */}
+                    <div className="flex flex-col gap-5">
+                        <div>
+                            <span className="text-xs text-yellow-600 font-bold uppercase tracking-wider">{product.brand}</span>
+                            <h1 className="text-2xl md:text-3xl font-extrabold mt-1 leading-tight text-gray-900">{product.name}</h1>
+                            <div className="flex items-center gap-2 mt-2.5">
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: 5 }).map((_, i) => {
+                                        const actualRating = reviews.length > 0 
+                                            ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length 
+                                            : product.rating;
+                                        return (
+                                            <Star key={i} size={16} className={i < Math.floor(actualRating) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-200 fill-gray-200'} />
+                                        )
+                                    })}
+                                </div>
+                                <span className="text-sm font-semibold text-gray-700">
+                                    {(reviews.length > 0 ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) : product.rating).toFixed(1)} 
+                                    <span className="text-gray-400 font-normal ml-1">
+                                        ({reviews.length > 0 ? reviews.length : (product.reviewCount || 0)} sharh)
+                                    </span>
+                                </span>
                             </div>
-                            <span className="text-sm font-semibold text-gray-700">{product.rating} <span className="text-gray-400 font-normal">({reviews.length > 0 ? reviews.length : product.reviewCount} sharh)</span></span>
                         </div>
-                    </div>
 
                     <div className="flex items-center gap-2 bg-gray-50 w-fit px-3 py-1.5 rounded-lg border border-gray-100">
                         {product.inStock

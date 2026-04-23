@@ -1968,22 +1968,24 @@ export default function AdminDashboard() {
                                             
                                             <button 
                                                 onClick={() => {
-                                                    if (confirm("Rostdan ham bu sharhni o'chirmoqchimisiz?")) {
+                                                    if (window.confirm("Rostdan ham bu sharhni o'chirmoqchimisiz?")) {
                                                         fetch(`/api/reviews?id=${review.id}`, { method: 'DELETE' })
                                                             .then(res => res.json())
                                                             .then(data => {
                                                                 if (data.success) {
                                                                     setAllReviews(prev => prev.filter(r => r.id !== review.id));
-                                                                    showToast("Sharh o'chirildi");
+                                                                    // Update the products state maybe, but we don't have access to setProducts
+                                                                    alert("Sharh muvaffaqiyatli o'chirildi!");
                                                                 } else {
-                                                                    showToast("Xatolik: " + data.error);
+                                                                    alert("Xatolik: " + data.error);
                                                                 }
-                                                            }).catch(() => showToast("Xatolik yuz berdi"));
+                                                            }).catch(() => alert("Xatolik yuz berdi"));
                                                     }
                                                 }}
-                                                className="absolute top-4 right-4 bg-red-500/10 text-red-400 p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                                                className="absolute top-4 right-4 flex items-center gap-1 bg-red-500/10 text-red-400 px-3 py-1.5 rounded-lg opacity-100 transition-colors hover:bg-red-500 hover:text-white"
                                             >
                                                 <XCircle size={16} />
+                                                <span className="text-sm font-bold">O'chirish</span>
                                             </button>
                                         </div>
                                     );
