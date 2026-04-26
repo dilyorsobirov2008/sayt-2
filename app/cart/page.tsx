@@ -128,7 +128,10 @@ export default function CartPage() {
                 const itemPrice = Math.ceil(price * (1 + interestPercent / 100));
                 
                 let itemName = i.product.name;
-                if (i.selectedVariant) itemName += ` (${i.selectedVariant.ram}GB/${i.selectedVariant.storage}GB)`;
+                if (i.selectedVariant) {
+                    const storageStr = i.selectedVariant.storage >= 1024 ? `${i.selectedVariant.storage/1024}TB` : `${i.selectedVariant.storage}GB`;
+                    itemName += ` (${i.selectedVariant.ram ? `${i.selectedVariant.ram}GB/` : ''}${storageStr})`;
+                }
                 if (i.selectedColor) itemName += ` - ${i.selectedColor}`;
 
                 return {
@@ -482,7 +485,10 @@ export default function CartPage() {
                     {cart.map((i, idx) => {
                         const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
                         let itemName = i.product.name;
-                        if (i.selectedVariant) itemName += ` (${i.selectedVariant.ram}GB/${i.selectedVariant.storage}GB)`;
+                        if (i.selectedVariant) {
+                            const storageStr = i.selectedVariant.storage >= 1024 ? `${i.selectedVariant.storage/1024}TB` : `${i.selectedVariant.storage}GB`;
+                            itemName += ` (${i.selectedVariant.ram ? `${i.selectedVariant.ram}GB/` : ''}${storageStr})`;
+                        }
                         if (i.selectedColor) itemName += ` - ${i.selectedColor}`;
                         
                         return (
@@ -547,7 +553,10 @@ export default function CartPage() {
                                 {(selectedColor || selectedVariant) && (
                                     <div className="flex flex-wrap gap-1 mt-1">
                                         {selectedVariant && (
-                                            <span className="text-[10px] bg-gray-100 font-semibold px-2 py-0.5 rounded-md text-gray-600">{selectedVariant.ram}GB / {selectedVariant.storage}GB</span>
+                                            <span className="text-[10px] bg-gray-100 font-semibold px-2 py-0.5 rounded-md text-gray-600">
+                                                {selectedVariant.ram ? `${selectedVariant.ram}GB / ` : ''}
+                                                {selectedVariant.storage >= 1024 ? `${selectedVariant.storage/1024}TB` : `${selectedVariant.storage}GB`}
+                                            </span>
                                         )}
                                         {selectedColor && (
                                             <span className="text-[10px] bg-gray-100 font-semibold px-2 py-0.5 rounded-md text-gray-600">{selectedColor}</span>

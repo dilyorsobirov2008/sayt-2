@@ -386,17 +386,17 @@ export default function ProductsAdminPage() {
                           {/* RAM/Storage badge */}
                           <div className="flex items-center gap-1 shrink-0">
                             <div className="px-3 py-1.5 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-black">
-                              {v.ram && v.storage
-                                ? `${v.ram}GB / ${Number(v.storage) >= 1024 ? `${Number(v.storage)/1024}TB` : `${v.storage}GB`}`
+                              {v.storage
+                                ? (v.ram ? `${v.ram}GB / ` : '') + `${Number(v.storage) >= 1024 ? `${Number(v.storage)/1024}TB` : `${v.storage}GB`}`
                                 : 'RAM / Xotira'}
                             </div>
                           </div>
 
                           {/* Custom RAM/Storage inputs — show only if empty (custom variant) */}
-                          {(!v.ram || !v.storage) && (
+                          {(!v.storage) && (
                             <>
                               <input
-                                placeholder="RAM (GB)"
+                                placeholder="RAM (1)"
                                 type="number"
                                 value={v.ram}
                                 onChange={e => {
@@ -407,7 +407,7 @@ export default function ProductsAdminPage() {
                                 className="w-20 bg-black/20 text-xs font-bold py-2 px-3 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors"
                               />
                               <input
-                                placeholder="GB"
+                                placeholder="XOTIRA"
                                 type="number"
                                 value={v.storage}
                                 onChange={e => {
@@ -420,21 +420,33 @@ export default function ProductsAdminPage() {
                             </>
                           )}
 
-                          {/* Price input */}
-                          <div className="flex-1 relative">
+                          {/* Price and SKU input */}
+                          <div className="flex-1 flex gap-2">
+                            <div className="flex-1 relative">
+                              <input
+                                required
+                                placeholder="Narxi (so'm)"
+                                type="number"
+                                value={v.price}
+                                onChange={e => {
+                                  const newV = [...formData.storageVariants];
+                                  newV[i] = { ...newV[i], price: e.target.value };
+                                  setFormData({ ...formData, storageVariants: newV });
+                                }}
+                                className="w-full bg-black/20 text-sm font-bold py-2 px-4 pr-14 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors font-mono"
+                              />
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-600 uppercase">UZS</span>
+                            </div>
                             <input
-                              required
-                              placeholder="Narxi (so'm)"
-                              type="number"
-                              value={v.price}
+                              placeholder="SKU/ID (ixtiyoriy)"
+                              value={v.sku || ''}
                               onChange={e => {
                                 const newV = [...formData.storageVariants];
-                                newV[i] = { ...newV[i], price: e.target.value };
+                                newV[i] = { ...newV[i], sku: e.target.value };
                                 setFormData({ ...formData, storageVariants: newV });
                               }}
-                              className="w-full bg-black/20 text-sm font-bold py-2 px-4 pr-14 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors font-mono"
+                              className="w-36 bg-black/20 text-xs font-bold py-2 px-3 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-600 uppercase">UZS</span>
                           </div>
 
                           {/* Remove button */}

@@ -223,18 +223,24 @@ export default function ProductPage() {
                             <p className="text-sm font-bold text-gray-800 mb-3">
                                 {lang === 'uz' ? 'Konfiguratsiya: ' : 'Конфигурация: '}
                                 <span className="font-normal text-gray-500">
-                                    {selectedStorageVariant?.ram}GB / {selectedStorageVariant?.storage}GB
+                                    {selectedStorageVariant?.ram ? `${selectedStorageVariant.ram}GB / ` : ''}
+                                    {selectedStorageVariant?.storage ? (selectedStorageVariant.storage >= 1024 ? `${selectedStorageVariant.storage/1024}TB` : `${selectedStorageVariant.storage}GB`) : ''}
+                                    {!selectedStorageVariant?.ram && lang === 'uz' ? ' Xotira' : (!selectedStorageVariant?.ram && lang === 'ru' ? ' Память' : '')}
                                 </span>
                             </p>
                             <div className="flex gap-2 flex-wrap mb-4">
                                 {storageVariants.map((v: StorageVariant) => {
                                     const isSelected = selectedStorageVariant?.id === v.id;
+                                    const storageText = v.storage >= 1024 ? `${v.storage/1024}TB` : `${v.storage}GB`;
                                     return (
                                         <button key={v.id}
                                             onClick={() => setSelectedStorageVariant(v)}
-                                            className={`px-4 py-3 rounded-xl border-2 font-bold text-sm transition-all ${isSelected ? 'border-yellow-400 bg-yellow-50 text-indigo-900 shadow-sm' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'}`}>
-                                            <span className="block text-xs uppercase tracking-wider text-gray-500 mb-1">{v.ram}GB RAM</span>
-                                            {v.storage}GB <span className="text-[10px] text-gray-400 font-medium ml-1">SSD</span>
+                                            className={`px-4 py-2.5 flex items-center justify-center rounded-xl border-2 font-bold text-base transition-all ${isSelected ? 'border-yellow-400 bg-yellow-50 text-indigo-900 shadow-sm' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'}`}>
+                                            {v.ram > 0 ? (
+                                                <span>{v.ram}/{storageText.replace('GB','')} <span className="text-xs font-normal text-gray-500 ml-0.5">GB</span></span>
+                                            ) : (
+                                                <span>{storageText} <span className="text-[10px] text-gray-400 font-medium ml-0.5">{lang === 'uz' ? 'Xotira' : 'Память'}</span></span>
+                                            )}
                                         </button>
                                     );
                                 })}
