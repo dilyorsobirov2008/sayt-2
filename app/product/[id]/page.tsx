@@ -43,6 +43,9 @@ export default function ProductPage() {
     const [submitting, setSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
 
+    // Sales Count
+    const [salesCount, setSalesCount] = useState<number | null>(null);
+
     // Auth
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [userId, setUserId] = useState<string | null>(null);
@@ -82,6 +85,18 @@ export default function ProductPage() {
             setImages((product as any).images?.length ? (product as any).images : [product.image]);
         }
     }, [product]);
+
+    useEffect(() => {
+        if (!product) return;
+        fetch(`/api/products/${product.id}/sales?name=${encodeURIComponent(product.name || '')}`)
+            .then(r => r.json())
+            .then(data => {
+                if (data.count !== undefined) {
+                    setSalesCount(data.count);
+                }
+            })
+            .catch(err => console.error("Sales fetch error:", err));
+    }, [product?.id]);
 
     if (!product) return (
         <div className="min-h-screen flex items-center justify-center">
@@ -214,6 +229,14 @@ export default function ProductPage() {
                         <p className="text-4xl font-extrabold text-gray-900 tracking-tight">{formatPrice(displayPrice)}</p>
                         {product.discountPercent && product.discountPercent > 0 && (
                             <p className="text-gray-400 line-through text-sm mt-1">{formatPrice(Math.ceil(displayPrice / (1 - product.discountPercent / 100)))}</p>
+                        )}
+                        {salesCount !== null && (
+                            <div className="flex items-center gap-1.5 mt-2 bg-red-50 text-red-600 px-3 py-1.5 rounded-lg w-fit border border-red-100/50 shadow-sm shadow-red-100/20">
+                                <span className="text-base animate-pulse">🔥</span>
+                                <span className="text-xs font-bold object-contain whitespace-nowrap">
+                                    {lang === 'uz' ? `Oxirgi 1 oyda ${salesCount} ta sotildi` : `За последний месяц продано ${salesCount} шт`}
+                                </span>
+                            </div>
                         )}
                     </div>
 
