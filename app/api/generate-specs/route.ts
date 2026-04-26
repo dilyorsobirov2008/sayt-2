@@ -19,7 +19,7 @@ Diqqat: Faqatgina JSON array qaytaring, hech qanday qo'shimcha so'zlar yoki mark
 Har bir obyekt faqat 'key' va 'value' xususiyatlariga ega bo'lsin.
 Masalan: [{"key": "Ekran", "value": "6.7 dyuym, AMOLED"}, {"key": "Xotira", "value": "256 GB"}]`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
