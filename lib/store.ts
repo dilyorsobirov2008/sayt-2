@@ -13,9 +13,9 @@ export interface InstallmentPlan {
 interface StoreState {
     // Cart (localStorage - per user)
     cart: CartItem[];
-    addToCart: (product: Product) => void;
-    removeFromCart: (productId: number) => void;
-    updateQuantity: (productId: number, quantity: number) => void;
+    addToCart: (product: Product, selectedColor?: string, selectedVariant?: any) => void;
+    removeFromCart: (productId: number, selectedColor?: string, selectedVariantId?: number) => void;
+    updateQuantity: (productId: number, quantity: number, selectedColor?: string, selectedVariantId?: number) => void;
     clearCart: () => void;
     cartTotal: () => number;
     cartCount: () => number;
@@ -76,35 +76,56 @@ export const useStore = create<StoreState>()(
         (set: any, get: any) => ({
             // Cart
             cart: [] as CartItem[],
-            addToCart: (product: Product) => {
-                const existing = get().cart.find((i: any) => i.product.id === product.id);
-                if (existing) {
-                    set((s: any) => ({
-                        cart: s.cart.map((i: any) =>
-                            i.product.id === product.id
-                                ? { ...i, quantity: i.quantity + 1 }
-                                : i
-                        )
-                    }));
+            addToCart: (product: Product, selectedColor?: string, selectedVariant?: any) => {
+                const cartList = get().cart;
+                
+                // Qidirish uchun unique "kalit" — id, rang va variant asosida
+                const index = cartList.findIndex((i: any) => 
+                    i.product.id === product.id && 
+                    i.selectedColor === selectedColor && 
+                    i.selectedVariant?.id === selectedVariant?.id
+                );
+
+                if (index >= 0) {
+                    const newCart = [...cartList];
+                    newCart[index].quantity += 1;
+                    set({ cart: newCart });
                 } else {
-                    set((s: any) => ({ cart: [...s.cart, { product, quantity: 1 }] }));
+                    set({ cart: [...cartList, { product, quantity: 1, selectedColor, selectedVariant }] });
                 }
             },
-            removeFromCart: (productId: number) =>
-                set((s: any) => ({ cart: s.cart.filter((i: any) => i.product.id !== productId) })),
-            updateQuantity: (productId: number, quantity: number) => {
+            removeFromCart: (productId: number, selectedColor?: string, selectedVariantId?: number) => {
+                if (selectedColor === undefined && selectedVariantId === undefined) {
+                     // Eski usuldagi argumentlar (faqat ID) kelsa, shu ID ga tegishli barcha narsani o'chirish (yoki eng birinchisini)
+                     set((s: any) => ({ cart: s.cart.filter((i: any) => i.product.id !== productId) }));
+                     return;
+                }
+                
+                set((s: any) => ({ 
+                    cart: s.cart.filter((i: any) => 
+                        !(i.product.id === productId && 
+                          i.selectedColor === selectedColor && 
+                          i.selectedVariant?.id === selectedVariantId)
+                    ) 
+                }));
+            },
+            updateQuantity: (productId: number, quantity: number, selectedColor?: string, selectedVariantId?: number) => {
                 if (quantity <= 0) {
-                    get().removeFromCart(productId);
+                    get().removeFromCart(productId, selectedColor, selectedVariantId);
                 } else {
                     set((s: any) => ({
                         cart: s.cart.map((i: any) =>
-                            i.product.id === productId ? { ...i, quantity } : i
+                            (i.product.id === productId && i.selectedColor === selectedColor && i.selectedVariant?.id === selectedVariantId)
+                                ? { ...i, quantity } : i
                         )
                     }));
                 }
             },
             clearCart: () => set({ cart: [] as CartItem[] }),
-            cartTotal: () => get().cart.reduce((sum: number, i: any) => sum + i.product.price * i.quantity, 0),
+            cartTotal: () => get().cart.reduce((sum: number, i: any) => {
+                const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
+                return sum + price * i.quantity;
+            }, 0),
             cartCount: () => get().cart.reduce((sum: number, i: any) => sum + i.quantity, 0),
 
             // Favorites

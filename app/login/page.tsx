@@ -2,8 +2,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useStore } from '@/lib/store';
+import { uz, ru } from '@/lib/i18n';
+
 export default function LoginPage() {
     const router = useRouter();
+    const { lang } = useStore();
+    const t = lang === 'uz' ? uz : ru;
     const [tab, setTab] = useState<'login' | 'register'>('login');
 
     // Login
@@ -54,10 +59,10 @@ export default function LoginPage() {
                 const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/profile';
                 router.push(returnUrl);
             } else {
-                setLoginError(data.error || "Email yoki parol noto'g'ri!");
+                setLoginError(data.error || t.auth.wrongCredentials);
             }
         } catch {
-            setLoginError("Xatolik yuz berdi. Qayta urinib ko'ring.");
+            setLoginError(t.auth.generalError);
         }
         setLoginLoading(false);
     };
@@ -81,14 +86,14 @@ export default function LoginPage() {
                 localStorage.setItem('user_name', `${data.firstName} ${data.lastName}`.trim());
                 localStorage.setItem('user_email', data.email);
                 localStorage.setItem('user_phone', data.phone || '');
-                setRegSuccess("Muvaffaqiyatli ro'yxatdan o'tdingiz!");
+                setRegSuccess(t.auth.successRegister);
                 const returnUrl = new URLSearchParams(window.location.search).get('returnUrl') || '/profile';
                 setTimeout(() => router.push(returnUrl), 1200);
             } else {
-                setRegError(data.error || "Xatolik yuz berdi!");
+                setRegError(data.error || t.auth.generalError);
             }
         } catch {
-            setRegError("Xatolik yuz berdi. Qayta urinib ko'ring.");
+            setRegError(t.auth.generalError);
         }
         setRegLoading(false);
     };
@@ -103,18 +108,18 @@ export default function LoginPage() {
                     <Link href="/">
                         <h1 className="text-4xl font-extrabold tracking-tight text-gray-900">ashinde</h1>
                     </Link>
-                    <p className="text-gray-500 text-sm mt-2">Hisobingizga kiring yoki ro'yxatdan o'ting</p>
+                    <p className="text-gray-500 text-sm mt-2">{t.auth.subtitle}</p>
                 </div>
 
                 {/* Tabs */}
                 <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">
                     <button onClick={() => setTab('login')}
                         className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                        Kirish
+                        {t.auth.loginTitle}
                     </button>
                     <button onClick={() => setTab('register')}
                         className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${tab === 'register' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>
-                        Ro'yxatdan o'tish
+                        {t.auth.registerTitle}
                     </button>
                 </div>
 
@@ -126,18 +131,18 @@ export default function LoginPage() {
                                     <div className="bg-red-50 border border-red-200 text-red-600 text-sm rounded-xl px-4 py-3">❌ {loginError}</div>
                                 )}
                                 <div>
-                                    <label className={labelClass}>Email</label>
+                                    <label className={labelClass}>{t.auth.email}</label>
                                     <input type="email" value={loginEmail} onChange={e => setLoginEmail(e.target.value)}
-                                        placeholder="email@gmail.com" required className={inputClass} />
+                                        placeholder={t.auth.emailPlaceholder} required className={inputClass} />
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Parol</label>
+                                    <label className={labelClass}>{t.auth.password}</label>
                                     <input type="password" value={loginPass} onChange={e => setLoginPass(e.target.value)}
-                                        placeholder="Parolingiz" required className={inputClass} />
+                                        placeholder={t.auth.passwordPlaceholder} required className={inputClass} />
                                 </div>
                                 <button type="submit" disabled={loginLoading}
                                     className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-200 active:scale-[0.98] text-black font-extrabold py-3.5 rounded-xl transition-all text-sm">
-                                    {loginLoading ? 'Kirilmoqda...' : 'Kirish →'}
+                                    {loginLoading ? t.auth.loginLoading : t.auth.loginButton}
                                 </button>
                             </form>
                         ) : (
@@ -150,34 +155,34 @@ export default function LoginPage() {
                                 )}
                                 <div className="grid grid-cols-2 gap-3">
                                     <div>
-                                        <label className={labelClass}>Ism *</label>
+                                        <label className={labelClass}>{t.auth.firstName} {t.auth.required}</label>
                                         <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
-                                            placeholder="Ismingiz" required className={inputClass} />
+                                            placeholder={t.auth.firstNamePlaceholder} required className={inputClass} />
                                     </div>
                                     <div>
-                                        <label className={labelClass}>Familya</label>
+                                        <label className={labelClass}>{t.auth.lastName}</label>
                                         <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
-                                            placeholder="Familyangiz" className={inputClass} />
+                                            placeholder={t.auth.lastNamePlaceholder} className={inputClass} />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Telefon raqam</label>
+                                    <label className={labelClass}>{t.auth.phone}</label>
                                     <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                                        placeholder="+998 90 123 45 67" className={inputClass} />
+                                        placeholder={t.auth.phonePlaceholder} className={inputClass} />
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Email *</label>
+                                    <label className={labelClass}>{t.auth.email} {t.auth.required}</label>
                                     <input type="email" value={regEmail} onChange={e => setRegEmail(e.target.value)}
-                                        placeholder="email@gmail.com" required className={inputClass} />
+                                        placeholder={t.auth.emailPlaceholder} required className={inputClass} />
                                 </div>
                                 <div>
-                                    <label className={labelClass}>Parol * (kamida 6 ta belgi)</label>
+                                    <label className={labelClass}>{t.auth.password} {t.auth.required} ({t.auth.passwordHint})</label>
                                     <input type="password" value={regPass} onChange={e => setRegPass(e.target.value)}
-                                        placeholder="••••••" required minLength={6} className={inputClass} />
+                                        placeholder={t.auth.passwordPlaceholder} required minLength={6} className={inputClass} />
                                 </div>
                                 <button type="submit" disabled={regLoading}
                                     className="w-full bg-yellow-400 hover:bg-yellow-500 disabled:bg-gray-200 active:scale-[0.98] text-black font-extrabold py-3.5 rounded-xl transition-all text-sm">
-                                    {regLoading ? "Ro'yxatdan o'tilmoqda..." : "Ro'yxatdan o'tish →"}
+                                    {regLoading ? t.auth.registerLoading : t.auth.registerButton}
                                 </button>
                             </form>
                         )}
@@ -185,7 +190,7 @@ export default function LoginPage() {
                 </div>
 
                 <p className="text-center text-gray-400 text-xs mt-4">
-                    <Link href="/" className="hover:text-gray-600 transition-colors">← Bosh sahifaga qaytish</Link>
+                    <Link href="/" className="hover:text-gray-600 transition-colors">{t.auth.backToHome}</Link>
                 </p>
             </div>
         </div>

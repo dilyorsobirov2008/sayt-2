@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const dbProducts = await prisma.product.findMany({
-      include: { category: true },
+      include: { category: true, storageVariants: true },
       orderBy: { created_at: 'desc' },
     });
 
@@ -29,6 +29,13 @@ export async function GET() {
       discountPercent: p.discountPercent || null,
       creditMarkupPercent: p.creditMarkupPercent || null,
       specs: p.specs ? (typeof p.specs === 'string' ? JSON.parse(p.specs) : p.specs) : undefined,
+      storageVariants: p.storageVariants ? p.storageVariants.map((sv: any) => ({
+         id: sv.id,
+         ram: Number(sv.ram),
+         storage: Number(sv.storage),
+         price: Number(sv.price),
+         sku: sv.sku
+      })) : [],
       // Keep raw fields for admin
       title_uz: p.title_uz,
       category_name: p.category_name,
@@ -123,6 +130,20 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Save storage variants
+    if (body.storageVariants?.length) {
+      await prisma.storageVariant.deleteMany({ where: { productId: product.id } });
+      await prisma.storageVariant.createMany({
+        data: body.storageVariants.map((v: any) => ({
+          productId: product.id,
+          ram: Number(v.ram),
+          storage: Number(v.storage),
+          price: Number(v.price),
+          sku: v.sku || null,
+        })),
+      });
+    }
+
     return NextResponse.json(product);
   } catch (error: any) {
     console.error('Error creating product:', error);
@@ -208,6 +229,22 @@ export async function PUT(req: NextRequest) {
             colorName: v.colorName,
             colorNameRu: v.colorNameRu || null,
             image: v.image || null,
+          })),
+        });
+      }
+    }
+
+    // Save storage variants
+    if (body.storageVariants !== undefined) {
+      await prisma.storageVariant.deleteMany({ where: { productId: parseInt(body.id) } });
+      if (body.storageVariants.length) {
+        await prisma.storageVariant.createMany({
+          data: body.storageVariants.map((v: any) => ({
+            productId: parseInt(body.id),
+            ram: Number(v.ram),
+            storage: Number(v.storage),
+            price: Number(v.price),
+            sku: v.sku || null,
           })),
         });
       }

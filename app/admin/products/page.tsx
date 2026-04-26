@@ -30,7 +30,8 @@ export default function ProductsAdminPage() {
     price: '',
     available: true,
     weight: '',
-    category_name: ''
+    category_name: '',
+    storageVariants: [] as { ram: string, storage: string, price: string, sku: string }[]
   });
 
   const fetchData = useCallback(async () => {
@@ -60,7 +61,7 @@ export default function ProductsAdminPage() {
       });
       if (res.ok) {
         setShowAddModal(false);
-        setFormData({ title_uz: '', price: '', available: true, weight: '', category_name: '' });
+        setFormData({ title_uz: '', price: '', available: true, weight: '', category_name: '', storageVariants: [] });
         fetchData();
       }
     } catch (err) {
@@ -314,6 +315,30 @@ export default function ProductsAdminPage() {
                     value={formData.weight}
                     onChange={e => setFormData({...formData, weight: e.target.value})}
                   />
+                </div>
+                
+                {/* Storage Variants UI */}
+                <div className="col-span-1 md:col-span-2 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Storage Variants</label>
+                    <button type="button" onClick={() => setFormData({...formData, storageVariants: [...(formData.storageVariants || []), { ram: '', storage: '', price: '', sku: '' }]})} className="text-xs font-bold text-indigo-400 uppercase hover:text-indigo-300 transition-colors">
+                      + Add Variant
+                    </button>
+                  </div>
+                  {formData.storageVariants && formData.storageVariants.length > 0 && (
+                    <div className="space-y-3">
+                      {formData.storageVariants.map((v, i) => (
+                        <div key={i} className="grid grid-cols-5 gap-3 items-center bg-white/5 p-4 rounded-2xl border border-white/10">
+                          <input required placeholder="RAM (GB)" type="number" value={v.ram} onChange={e => { const newV = [...formData.storageVariants]; newV[i].ram = e.target.value; setFormData({...formData, storageVariants: newV}) }} className="w-full bg-black/20 text-sm font-bold py-3 px-4 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors" />
+                          <input required placeholder="STORAGE (GB)" type="number" value={v.storage} onChange={e => { const newV = [...formData.storageVariants]; newV[i].storage = e.target.value; setFormData({...formData, storageVariants: newV}) }} className="w-full bg-black/20 text-sm font-bold py-3 px-4 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors" />
+                          <input required placeholder="PRICE (UZS)" type="number" value={v.price} onChange={e => { const newV = [...formData.storageVariants]; newV[i].price = e.target.value; setFormData({...formData, storageVariants: newV}) }} className="col-span-2 w-full bg-black/20 text-sm font-bold py-3 px-4 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors string font-mono" />
+                          <button type="button" onClick={() => { const newV = [...formData.storageVariants]; newV.splice(i, 1); setFormData({...formData, storageVariants: newV}) }} className="text-red-400 hover:text-red-300 w-12 h-12 flex justify-center items-center rounded-xl bg-red-400/10 hover:bg-red-400/20 transition-colors mx-auto">
+                            <Trash2 size={18} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 

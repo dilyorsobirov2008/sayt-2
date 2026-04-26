@@ -46,6 +46,7 @@ model Product {
   category Category?       @relation(fields: [category_name], references: [name])
   images   ProductImage[]
   variants ProductVariant[]
+  storageVariants StorageVariant[]
   reviews  Review[]
 
   @@index([category_name])
@@ -92,6 +93,17 @@ model ProductVariant {
   colorName   String
   colorNameRu String?
   image       String?
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model StorageVariant {
+  id        Int     @id @default(autoincrement())
+  productId Int
+  ram       Int
+  storage   Int
+  price     Decimal @db.Decimal(12, 2)
+  sku       String?
 
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }

@@ -15,6 +15,7 @@ export async function GET(
         category: true,
         images: { orderBy: { sortOrder: 'asc' } },
         variants: true,
+        storageVariants: true,
       },
     });
 
@@ -36,6 +37,13 @@ export async function GET(
         colorNameRu: v.colorNameRu,
         image: v.image,
       })),
+      storageVariants: (p as any).storageVariants ? (p as any).storageVariants.map((sv: any) => ({
+        id: sv.id,
+        ram: Number(sv.ram),
+        storage: Number(sv.storage),
+        price: Number(sv.price),
+        sku: sv.sku,
+      })) : [],
       rating: p.rating || 0,
       reviewCount: p.reviewCount || 0,
       inStock: p.inStock ?? true,

@@ -10,6 +10,7 @@ import { ShoppingCart, Heart, Star, ArrowLeft, CheckCircle, XCircle, Send, Chevr
 import { ProductCard } from '@/components/ProductCard';
 
 interface Variant { id: number; color: string; colorName: string; colorNameRu: string | null; image: string | null; }
+interface StorageVariant { id: number; ram: number; storage: number; price: number; sku: string | null; }
 interface Review { id: number; userName: string; rating: number; comment: string; createdAt: string; userId?: number | null; }
 
 export default function ProductPage() {
@@ -28,6 +29,10 @@ export default function ProductPage() {
     // Variants
     const [variants, setVariants] = useState<Variant[]>([]);
     const [selectedVariant, setSelectedVariant] = useState<Variant | null>(null);
+
+    // Storage Variants
+    const [storageVariants, setStorageVariants] = useState<StorageVariant[]>([]);
+    const [selectedStorageVariant, setSelectedStorageVariant] = useState<StorageVariant | null>(null);
 
     // Reviews
     const [reviews, setReviews] = useState<Review[]>([]);
@@ -58,6 +63,10 @@ export default function ProductPage() {
                     const imgs = data.product.images?.length ? data.product.images : [data.product.image];
                     setImages(imgs);
                     setVariants(data.product.variants || []);
+                    if (data.product.storageVariants && data.product.storageVariants.length > 0) {
+                        setStorageVariants(data.product.storageVariants);
+                        setSelectedStorageVariant(data.product.storageVariants[0]);
+                    }
                 }
             }).catch(() => {});
 
@@ -87,6 +96,7 @@ export default function ProductPage() {
     const fav = isFavorite(product.id);
     const activePlans = installmentPlans.filter(p => p.isActive).sort((a, b) => a.months - b.months);
     const selectedPlan = selectedPlanId ? activePlans.find(p => p.id === selectedPlanId) : activePlans[0] ?? null;
+    const displayPrice = selectedStorageVariant ? selectedStorageVariant.price : product.price;
     const calcPlanPrice = (price: number, pct: number) => Math.ceil(price * (1 + pct / 100));
     const calcMonthly = (price: number, months: number, pct: number) => Math.ceil(calcPlanPrice(price, pct) / months);
     const similarProducts = products.filter(p => p.category === product.category && p.id !== product.id && p.inStock).slice(0, 5);
@@ -201,17 +211,42 @@ export default function ProductPage() {
                     </div>
 
                     <div>
-                        <p className="text-4xl font-extrabold text-gray-900 tracking-tight">{formatPrice(product.price)}</p>
+                        <p className="text-4xl font-extrabold text-gray-900 tracking-tight">{formatPrice(displayPrice)}</p>
                         {product.discountPercent && product.discountPercent > 0 && (
-                            <p className="text-gray-400 line-through text-sm mt-1">{formatPrice(Math.ceil(product.price / (1 - product.discountPercent / 100)))}</p>
+                            <p className="text-gray-400 line-through text-sm mt-1">{formatPrice(Math.ceil(displayPrice / (1 - product.discountPercent / 100)))}</p>
                         )}
                     </div>
 
-                    {/* ═══ VARIANTS ═══ */}
+                    {/* ═══ STORAGE VARIANTS ═══ */}
+                    {storageVariants.length > 0 && (
+                        <div className="mb-1">
+                            <p className="text-sm font-bold text-gray-800 mb-3">
+                                {lang === 'uz' ? 'Konfiguratsiya: ' : 'Конфигурация: '}
+                                <span className="font-normal text-gray-500">
+                                    {selectedStorageVariant?.ram}GB / {selectedStorageVariant?.storage}GB
+                                </span>
+                            </p>
+                            <div className="flex gap-2 flex-wrap mb-4">
+                                {storageVariants.map((v: StorageVariant) => {
+                                    const isSelected = selectedStorageVariant?.id === v.id;
+                                    return (
+                                        <button key={v.id}
+                                            onClick={() => setSelectedStorageVariant(v)}
+                                            className={`px-4 py-3 rounded-xl border-2 font-bold text-sm transition-all ${isSelected ? 'border-yellow-400 bg-yellow-50 text-indigo-900 shadow-sm' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'}`}>
+                                            <span className="block text-xs uppercase tracking-wider text-gray-500 mb-1">{v.ram}GB RAM</span>
+                                            {v.storage}GB <span className="text-[10px] text-gray-400 font-medium ml-1">SSD</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* ═══ COLOR VARIANTS ═══ */}
                     {variants.length > 0 && (
                         <div className="mb-4">
                             <p className="text-sm font-bold text-gray-800 mb-3">
-                                {lang === 'uz' ? 'Variant tanlang:' : 'Выберите вариант:'}
+                                {lang === 'uz' ? 'Rang tanlang:' : 'Выберите цвет:'}
                             </p>
                             <div className="flex gap-2 flex-wrap">
                                 {variants.map((v: Variant) => {
@@ -255,12 +290,12 @@ export default function ProductPage() {
                                 <div className="bg-white rounded-xl p-4 border border-yellow-200">
                                     <div className="flex items-center justify-between mb-2">
                                         <span className="text-sm text-gray-600">{lang === 'uz' ? "Oylik to'lov:" : 'Ежемесячный платеж:'}</span>
-                                        <span className="text-2xl font-extrabold text-yellow-600">{formatPrice(calcMonthly(product.price, selectedPlan.months, selectedPlan.interestPercent))}<span className="text-sm font-normal text-gray-400">/{lang === 'uz' ? 'oy' : 'мес'}</span></span>
+                                        <span className="text-2xl font-extrabold text-yellow-600">{formatPrice(calcMonthly(displayPrice, selectedPlan.months, selectedPlan.interestPercent))}<span className="text-sm font-normal text-gray-400">/{lang === 'uz' ? 'oy' : 'мес'}</span></span>
                                     </div>
                                     {selectedPlan.interestPercent > 0 && (
                                         <div className="flex items-center justify-between text-xs">
                                             <span className="text-gray-500">{lang === 'uz' ? 'Jami kredit narxi:' : 'Итого в кредит:'}</span>
-                                            <span className="text-blue-600 font-bold">{formatPrice(calcPlanPrice(product.price, selectedPlan.interestPercent))}<span className="text-orange-500 ml-1">(+{selectedPlan.interestPercent}%)</span></span>
+                                            <span className="text-blue-600 font-bold">{formatPrice(calcPlanPrice(displayPrice, selectedPlan.interestPercent))}<span className="text-orange-500 ml-1">(+{selectedPlan.interestPercent}%)</span></span>
                                         </div>
                                     )}
                                     {selectedPlan.interestPercent === 0 && <p className="text-xs text-green-600 font-semibold">✅ {lang === 'uz' ? "Foizsiz bo'lib to'lash!" : 'Без процентов!'}</p>}
@@ -284,8 +319,12 @@ export default function ProductPage() {
                                 window.location.href = `/login?returnUrl=${encodeURIComponent('/product/' + product.id)}`;
                                 return;
                             }
+                            if (variants.length > 0 && !selectedVariant) {
+                                alert(lang === 'uz' ? 'Iltimos rangni tanlang!' : 'Пожалуйста выберите цвет!');
+                                return;
+                            }
                             useStore.getState().clearCart(); 
-                            addToCart(product); 
+                            addToCart(product, selectedVariant?.colorName || undefined, selectedStorageVariant || undefined); 
                             router.push('/cart?direct=1'); 
                         }}
                             disabled={!product.inStock}

@@ -39,16 +39,16 @@ export default function ProfilePage() {
                     {userName || 'User'}
                 </h1>
                 <p className="text-sm text-gray-500">
-                    {(isLoggedIn || isAdmin) ? (lang === 'uz' ? 'Faol hisob' : 'Активный аккаунт') : t.profile.loggedOut}
+                    {(isLoggedIn || isAdmin) ? t.profile.activeAccount : t.profile.loggedOut}
                 </p>
             </div>
 
             {/* Menu links */}
             <div className="space-y-2 mb-4">
                 {[
-                    { icon: ShoppingBag, label: lang === 'uz' ? 'Buyurtmalarim' : 'Мои заказы', href: '/orders', badge: null },
-                    { icon: Heart, label: lang === 'uz' ? 'Sevimlilar' : 'Избранное', href: '/favorites', badge: favorites.length || null },
-                    { icon: ShoppingBag, label: lang === 'uz' ? 'Savatcha' : 'Корзина', href: '/cart', badge: cartCount || null },
+                    { icon: ShoppingBag, label: t.profile.myOrders, href: '/orders', badge: null },
+                    { icon: Heart, label: t.profile.favorites, href: '/favorites', badge: favorites.length || null },
+                    { icon: ShoppingBag, label: t.profile.cart, href: '/cart', badge: cartCount || null },
                 ].map(({ icon: Icon, label, href, badge }) => (
                     <Link key={label} href={href}
                         className="flex items-center gap-4 bg-white border border-gray-100 rounded-2xl px-5 py-4 hover:border-yellow-300 hover:bg-yellow-50 transition-all group">
@@ -66,19 +66,19 @@ export default function ProfilePage() {
             {/* Auth block */}
             {isLoggedIn ? (
                 <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-4">
-                    <p className="text-green-600 text-sm font-medium mb-3">✅ Hisobingizga kirgansiz</p>
+                    <p className="text-green-600 text-sm font-medium mb-3">{t.profile.loggedIn}</p>
                     <button onClick={handleLogout}
                         className="w-full border border-red-200 text-red-500 hover:bg-red-50 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2">
-                        <LogOut size={14} /> Hisobdan chiqish
+                        <LogOut size={14} /> {t.profile.logout}
                     </button>
                 </div>
             ) : (
                 <div className="bg-white border border-gray-100 rounded-2xl p-5 mb-4">
-                    <p className="text-gray-500 text-sm mb-3">Hisobingizga kiring yoki ro'yxatdan o'ting</p>
+                    <p className="text-gray-500 text-sm mb-3">{t.profile.loginPrompt}</p>
                     <Link href="/login"
                         className="flex items-center justify-center gap-2 w-full bg-yellow-400 hover:bg-yellow-500 text-black font-bold py-3 rounded-xl text-sm transition-colors">
                         <LogIn size={15} />
-                        {lang === 'uz' ? 'Kirish / Ro\'yxatdan o\'tish' : 'Войти / Регистрация'}
+                        {t.profile.loginRegister}
                     </Link>
                 </div>
             )}

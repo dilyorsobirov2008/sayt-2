@@ -31,6 +31,12 @@ export function ProductCard({ product }: ProductCardProps) {
         return Math.ceil(totalPrice / months);
     };
 
+    // Eng past narx (agar storageVariants bo'lsa)
+    const minPrice = (product.storageVariants && product.storageVariants.length > 0)
+        ? Math.min(...product.storageVariants.map(v => v.price))
+        : product.price;
+    const hasVariants = product.storageVariants && product.storageVariants.length > 0;
+
     return (
         <div className="bg-white rounded-xl border border-gray-100 hover:shadow-md hover:border-gray-200 transition-all duration-200 overflow-hidden flex flex-col group">
             {/* Image */}
@@ -89,10 +95,13 @@ export function ProductCard({ product }: ProductCardProps) {
 
                 {/* Price section */}
                 <div className="mt-auto pt-1">
-                    <p className="text-xs sm:text-sm font-extrabold text-gray-900 leading-tight">{formatPrice(product.price)}</p>
+                    <p className="text-xs sm:text-sm font-extrabold text-gray-900 leading-tight pl-[1px]">
+                        {hasVariants && <span className="text-[10px] text-gray-500 font-medium mr-1">{lang === 'uz' ? 'dan' : 'от'}</span>}
+                        {formatPrice(minPrice)}
+                    </p>
                     {product.discountPercent && product.discountPercent > 0 && (
                         <p className="text-[9px] sm:text-[10px] line-through text-gray-400">
-                            {formatPrice(Math.ceil(product.price / (1 - product.discountPercent / 100)))}
+                            {formatPrice(Math.ceil(minPrice / (1 - product.discountPercent / 100)))}
                         </p>
                     )}
                     {/* Installment lines from global plans */}
@@ -101,7 +110,7 @@ export function ProductCard({ product }: ProductCardProps) {
                             💳 {longestPlan.months} {lang === 'uz' ? 'oy' : 'мес'}
                             {longestPlan.interestPercent > 0 && <span className="text-blue-500"> (+{longestPlan.interestPercent}%)</span>}
                             : <span className="font-semibold text-gray-700">
-                                {formatPrice(calcPlanMonthly(product.price, longestPlan.months, longestPlan.interestPercent))}/{lang === 'uz' ? 'oy' : 'мес'}
+                                {formatPrice(calcPlanMonthly(minPrice, longestPlan.months, longestPlan.interestPercent))}/{lang === 'uz' ? 'oy' : 'мес'}
                             </span>
                         </p>
                     )}

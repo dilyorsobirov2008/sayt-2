@@ -76,7 +76,8 @@ export default function CartPage() {
     // Kredit narxini hisoblash
     const calcCreditTotal = (interestPercent: number) => {
         return cart.reduce((sum, i) => {
-            return sum + Math.ceil(i.product.price * (1 + interestPercent / 100)) * i.quantity;
+            const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
+            return sum + Math.ceil(price * (1 + interestPercent / 100)) * i.quantity;
         }, 0);
     };
 
@@ -121,14 +122,20 @@ export default function CartPage() {
         }
         setSending(true);
         try {
-            const items = cart.map(({ product, quantity }) => {
+            const items = cart.map(i => {
+                const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
                 const interestPercent = paymentMethod === 'credit' && selectedPlan ? selectedPlan.interestPercent : 0;
-                const itemPrice = Math.ceil(product.price * (1 + interestPercent / 100));
+                const itemPrice = Math.ceil(price * (1 + interestPercent / 100));
+                
+                let itemName = i.product.name;
+                if (i.selectedVariant) itemName += ` (${i.selectedVariant.ram}GB/${i.selectedVariant.storage}GB)`;
+                if (i.selectedColor) itemName += ` - ${i.selectedColor}`;
+
                 return {
-                    name: product.name,
-                    quantity,
-                    price: itemPrice * quantity,
-                    cashPrice: product.price * quantity,
+                    name: itemName,
+                    quantity: i.quantity,
+                    price: itemPrice * i.quantity,
+                    cashPrice: price * i.quantity,
                 };
             });
 
@@ -472,12 +479,19 @@ export default function CartPage() {
                     <p className="text-sm font-bold text-gray-800">
                         {lang === 'uz' ? 'Buyurtma:' : 'Заказ:'}
                     </p>
-                    {cart.map(({ product, quantity }) => (
-                        <div key={product.id} className="flex justify-between text-sm text-gray-600">
-                            <span className="truncate mr-2">{product.name} × {quantity}</span>
-                            <span className="font-semibold flex-shrink-0">{formatPrice(product.price * quantity)}</span>
-                        </div>
-                    ))}
+                    {cart.map((i, idx) => {
+                        const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
+                        let itemName = i.product.name;
+                        if (i.selectedVariant) itemName += ` (${i.selectedVariant.ram}GB/${i.selectedVariant.storage}GB)`;
+                        if (i.selectedColor) itemName += ` - ${i.selectedColor}`;
+                        
+                        return (
+                            <div key={idx} className="flex justify-between text-sm text-gray-600">
+                                <span className="truncate mr-2">{itemName} × {i.quantity}</span>
+                                <span className="font-semibold flex-shrink-0">{formatPrice(price * i.quantity)}</span>
+                            </div>
+                        );
+                    })}
                     <div className="border-t border-dashed pt-2 flex justify-between font-extrabold text-base">
                         <span>{lang === 'uz' ? 'Naqd narx' : 'Наличная цена'}</span>
                         <span className="text-yellow-600">{formatPrice(total)}</span>
@@ -518,41 +532,56 @@ export default function CartPage() {
             <div className="grid md:grid-cols-5 gap-6">
                 {/* Cart Items */}
                 <div className="md:col-span-3 space-y-3">
-                    {cart.map(({ product, quantity }) => (
-                        <div key={product.id} className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 items-start shadow-sm">
+                    {cart.map((item, idx) => {
+                        const { product, quantity, selectedColor, selectedVariant } = item;
+                        const price = selectedVariant ? Number(selectedVariant.price) : product.price;
+
+                        return (
+                        <div key={`${product.id}-${selectedColor}-${selectedVariant?.id || idx}`} className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 items-start shadow-sm">
                             <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0">
                                 <Image src={product.image} alt={product.name} fill unoptimized className="object-cover" />
                             </div>
                             <div className="flex-1 min-w-0">
                                 <p className="text-xs text-yellow-600 font-semibold">{product.brand}</p>
                                 <h3 className="text-sm font-semibold line-clamp-2">{product.name}</h3>
-                                <p className="text-base font-extrabold mt-1">{formatPrice(product.price)}</p>
+                                {(selectedColor || selectedVariant) && (
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                        {selectedVariant && (
+                                            <span className="text-[10px] bg-gray-100 font-semibold px-2 py-0.5 rounded-md text-gray-600">{selectedVariant.ram}GB / {selectedVariant.storage}GB</span>
+                                        )}
+                                        {selectedColor && (
+                                            <span className="text-[10px] bg-gray-100 font-semibold px-2 py-0.5 rounded-md text-gray-600">{selectedColor}</span>
+                                        )}
+                                    </div>
+                                )}
+                                <p className="text-base font-extrabold mt-1">{formatPrice(price)}</p>
                                 {activePlans.length > 0 && (
                                     <p className="text-[10px] text-gray-500">
                                         {lang === 'uz' ? 'dan: ' : 'от: '}
-                                        {formatPrice(Math.ceil(product.price * (1 + (activePlans[0]?.interestPercent || 0) / 100) / (activePlans[activePlans.length - 1]?.months || 12)))}/{lang === 'uz' ? 'oy' : 'мес'}
+                                        {formatPrice(Math.ceil(price * (1 + (activePlans[0]?.interestPercent || 0) / 100) / (activePlans[activePlans.length - 1]?.months || 12)))}/{lang === 'uz' ? 'oy' : 'мес'}
                                     </p>
                                 )}
                             </div>
                             <div className="flex flex-col items-end gap-3 flex-shrink-0">
-                                <button onClick={() => removeFromCart(product.id)}
+                                <button onClick={() => removeFromCart(product.id, selectedColor, selectedVariant?.id)}
                                     className="text-gray-400 hover:text-red-500 transition-colors">
                                     <Trash2 size={16} />
                                 </button>
                                 <div className="flex items-center gap-2">
-                                    <button onClick={() => updateQuantity(product.id, quantity - 1)}
+                                    <button onClick={() => updateQuantity(product.id, quantity - 1, selectedColor, selectedVariant?.id)}
                                         className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-yellow-100 flex items-center justify-center transition-colors">
                                         <Minus size={12} />
                                     </button>
                                     <span className="text-sm font-bold min-w-[24px] text-center">{quantity}</span>
-                                    <button onClick={() => updateQuantity(product.id, quantity + 1)}
+                                    <button onClick={() => updateQuantity(product.id, quantity + 1, selectedColor, selectedVariant?.id)}
                                         className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-yellow-100 flex items-center justify-center transition-colors">
                                         <Plus size={12} />
                                     </button>
                                 </div>
                             </div>
                         </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
                 {/* Order Summary */}

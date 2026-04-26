@@ -17,8 +17,16 @@ export interface Product {
   installmentMonths?: number;   // e.g. 12, 18, 24
   discountPercent?: number;     // e.g. 10 = 10% off
   creditMarkupPercent?: number; // kredit uchun foiz ustama, masalan 15 = naqd narxdan 15% qimmat
+  storageVariants?: StorageVariant[];
 }
 
+export interface StorageVariant {
+  id: number;
+  ram: number;
+  storage: number;
+  price: number;
+  sku?: string;
+}
 
 export interface Category {
   id: number;
@@ -46,6 +54,8 @@ export interface Banner {
 export interface CartItem {
   product: Product;
   quantity: number;
+  selectedColor?: string;
+  selectedVariant?: StorageVariant;
 }
 
 export type Language = 'uz' | 'ru';
