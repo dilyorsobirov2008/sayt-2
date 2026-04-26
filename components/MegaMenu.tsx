@@ -13,7 +13,7 @@ export function MegaMenu() {
         <>
             <div className="fixed inset-0 z-40 bg-black/20" onClick={() => setMegaMenuOpen(false)} />
             <div className="absolute top-full left-0 right-0 z-50 bg-white shadow-xl border-t border-gray-100 animate-slideDown">
-                <div className="max-w-7xl mx-auto px-6 py-6">
+                <div className="max-w-[1440px] mx-auto px-6 py-6">
                     <div className="flex justify-between items-center mb-5">
                         <h2 className="text-lg font-bold text-gray-900">{lang === 'uz' ? 'Kategoriyalar' : 'Категории'}</h2>
                         <button onClick={() => setMegaMenuOpen(false)} className="text-gray-400 hover:text-black p-1 rounded-lg hover:bg-gray-100 transition-colors">

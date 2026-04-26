@@ -8,7 +8,7 @@ export function Footer() {
 
     return (
         <footer className="bg-gray-900 text-gray-300 mt-8 pb-20 md:pb-0">
-            <div className="max-w-7xl mx-auto px-6 py-10">
+            <div className="max-w-[1440px] mx-auto px-6 py-10">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
                     <div>
                         <p className="text-gray-400 text-xs mb-2 font-medium">
@@ -63,7 +63,7 @@ export function Footer() {
 
             {/* Bottom bar */}
             <div className="border-t border-gray-800">
-                <div className="max-w-7xl mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="max-w-[1440px] mx-auto px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                     <p className="text-gray-500 text-xs">
                         © 2024–2026 Ashinde.uz. {lang === 'uz' ? 'Barcha huquqlar himoyalangan.' : 'Все права защищены.'}
                     </p>

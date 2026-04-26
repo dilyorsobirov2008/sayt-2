@@ -647,7 +647,7 @@ export default function AdminDashboard() {
 
             {/* ── TOP NAV ── */}
             <header className="bg-[#0a0a0a] border-b border-[#1a1a1a] sticky top-0 z-50">
-                <div className="max-w-7xl mx-auto px-4">
+                <div className="max-w-[1440px] mx-auto px-4">
                     <div className="flex items-center gap-4 py-3 border-b border-[#1a1a1a]">
                         <Link href="/" className="text-xl font-extrabold flex-shrink-0">
                             <span className="text-white">ashinde</span>
@@ -683,7 +683,7 @@ export default function AdminDashboard() {
                 </div>
             </header>
 
-            <div className="max-w-7xl mx-auto px-4 py-6">
+            <div className="max-w-[1440px] mx-auto px-4 py-6">
 
                 {/* ── DASHBOARD ── */}
                 {activeTab === 'dashboard' && (

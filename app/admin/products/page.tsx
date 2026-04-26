@@ -109,7 +109,7 @@ export default function ProductsAdminPage() {
 
   return (
     <div className="min-h-screen bg-[#060608] text-gray-200 p-8 font-sans selection:bg-indigo-500/30">
-      <div className="max-w-7xl mx-auto space-y-12 animate-in fade-in duration-700">
+      <div className="max-w-[1440px] mx-auto space-y-12 animate-in fade-in duration-700">
         
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">

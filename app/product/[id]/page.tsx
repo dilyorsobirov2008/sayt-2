@@ -137,7 +137,7 @@ export default function ProductPage() {
     };
 
     return (
-        <div className="max-w-5xl mx-auto px-4 py-6 pb-20">
+        <div className="max-w-7xl mx-auto px-4 py-6 pb-20">
             <Link href="/catalog" className="flex items-center gap-2 text-sm text-gray-500 hover:text-black mb-5 transition-colors">
                 <ArrowLeft size={16} /> {lang === 'uz' ? "Katalogga qaytish" : "Назад в каталог"}
             </Link>

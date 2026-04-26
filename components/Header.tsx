@@ -70,7 +70,7 @@ export function Header() {
 
             {/* ── DESKTOP HEADER ── */}
             <header className="hidden md:block sticky top-0 z-40 bg-white shadow-sm relative">
-                <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-5">
+                <div className="max-w-[1440px] mx-auto px-6 h-16 flex items-center gap-5">
                     {/* Logo */}
                     <Link href="/" className="flex-shrink-0 mr-2">
                         <span className="text-2xl font-extrabold tracking-tight text-gray-900">

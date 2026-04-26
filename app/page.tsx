@@ -24,7 +24,7 @@ function HomeContent() {
   const allVisible = products.slice(0, 10);
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-[1440px] mx-auto">
       {/* Banner + Categories row (like Texnomart: side by side on desktop) */}
       <section className="px-2 sm:px-3 md:px-6 pt-3 md:pt-4 md:pt-5">
         <div>

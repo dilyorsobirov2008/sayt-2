@@ -93,7 +93,7 @@ function CatalogContent() {
     };
 
     return (
-        <div className="max-w-7xl mx-auto px-3 md:px-6 py-4">
+        <div className="max-w-[1440px] mx-auto px-3 md:px-6 py-4">
             {/* Categories */}
             <div className="bg-white rounded-xl border border-gray-100 p-4 mb-4">
                 <Suspense><CategoryScroll /></Suspense>
