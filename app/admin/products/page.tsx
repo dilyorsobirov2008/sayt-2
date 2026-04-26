@@ -317,23 +317,137 @@ export default function ProductsAdminPage() {
                   />
                 </div>
                 
-                {/* Storage Variants UI */}
+                {/* Storage Variants UI — Preset chips + custom */}
                 <div className="col-span-1 md:col-span-2 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Storage Variants</label>
-                    <button type="button" onClick={() => setFormData({...formData, storageVariants: [...(formData.storageVariants || []), { ram: '', storage: '', price: '', sku: '' }]})} className="text-xs font-bold text-indigo-400 uppercase hover:text-indigo-300 transition-colors">
-                      + Add Variant
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
+                    Xotira Variantlari (RAM / Xotira)
+                  </label>
+
+                  {/* Preset chips */}
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { ram: '4', storage: '64' },
+                      { ram: '4', storage: '128' },
+                      { ram: '6', storage: '128' },
+                      { ram: '6', storage: '256' },
+                      { ram: '8', storage: '128' },
+                      { ram: '8', storage: '256' },
+                      { ram: '8', storage: '512' },
+                      { ram: '12', storage: '256' },
+                      { ram: '12', storage: '512' },
+                      { ram: '16', storage: '512' },
+                      { ram: '16', storage: '1024' },
+                    ].map((preset) => {
+                      const alreadyAdded = formData.storageVariants.some(
+                        v => v.ram === preset.ram && v.storage === preset.storage
+                      );
+                      return (
+                        <button
+                          key={`${preset.ram}/${preset.storage}`}
+                          type="button"
+                          onClick={() => {
+                            if (alreadyAdded) return;
+                            setFormData({
+                              ...formData,
+                              storageVariants: [
+                                ...formData.storageVariants,
+                                { ram: preset.ram, storage: preset.storage, price: '', sku: '' }
+                              ]
+                            });
+                          }}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all
+                            ${alreadyAdded
+                              ? 'bg-indigo-500/30 border-indigo-500/60 text-indigo-300 cursor-not-allowed'
+                              : 'bg-white/5 border-white/10 text-gray-400 hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:text-indigo-300 cursor-pointer'
+                            }`}
+                        >
+                          {preset.ram}/{Number(preset.storage) >= 1024 ? `${Number(preset.storage)/1024}TB` : `${preset.storage}GB`}
+                        </button>
+                      );
+                    })}
+                    {/* Custom variant button */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        storageVariants: [...formData.storageVariants, { ram: '', storage: '', price: '', sku: '' }]
+                      })}
+                      className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest border border-dashed border-white/20 text-gray-500 hover:border-indigo-500/40 hover:text-indigo-400 transition-all"
+                    >
+                      + Boshqa
                     </button>
                   </div>
-                  {formData.storageVariants && formData.storageVariants.length > 0 && (
-                    <div className="space-y-3">
+
+                  {/* Selected variants list */}
+                  {formData.storageVariants.length > 0 && (
+                    <div className="space-y-2 mt-2">
                       {formData.storageVariants.map((v, i) => (
-                        <div key={i} className="grid grid-cols-5 gap-3 items-center bg-white/5 p-4 rounded-2xl border border-white/10">
-                          <input required placeholder="RAM (GB)" type="number" value={v.ram} onChange={e => { const newV = [...formData.storageVariants]; newV[i].ram = e.target.value; setFormData({...formData, storageVariants: newV}) }} className="w-full bg-black/20 text-sm font-bold py-3 px-4 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors" />
-                          <input required placeholder="STORAGE (GB)" type="number" value={v.storage} onChange={e => { const newV = [...formData.storageVariants]; newV[i].storage = e.target.value; setFormData({...formData, storageVariants: newV}) }} className="w-full bg-black/20 text-sm font-bold py-3 px-4 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors" />
-                          <input required placeholder="PRICE (UZS)" type="number" value={v.price} onChange={e => { const newV = [...formData.storageVariants]; newV[i].price = e.target.value; setFormData({...formData, storageVariants: newV}) }} className="col-span-2 w-full bg-black/20 text-sm font-bold py-3 px-4 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors string font-mono" />
-                          <button type="button" onClick={() => { const newV = [...formData.storageVariants]; newV.splice(i, 1); setFormData({...formData, storageVariants: newV}) }} className="text-red-400 hover:text-red-300 w-12 h-12 flex justify-center items-center rounded-xl bg-red-400/10 hover:bg-red-400/20 transition-colors mx-auto">
-                            <Trash2 size={18} />
+                        <div key={i} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-3">
+                          {/* RAM/Storage badge */}
+                          <div className="flex items-center gap-1 shrink-0">
+                            <div className="px-3 py-1.5 rounded-xl bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 text-xs font-black">
+                              {v.ram && v.storage
+                                ? `${v.ram}GB / ${Number(v.storage) >= 1024 ? `${Number(v.storage)/1024}TB` : `${v.storage}GB`}`
+                                : 'RAM / Xotira'}
+                            </div>
+                          </div>
+
+                          {/* Custom RAM/Storage inputs — show only if empty (custom variant) */}
+                          {(!v.ram || !v.storage) && (
+                            <>
+                              <input
+                                placeholder="RAM (GB)"
+                                type="number"
+                                value={v.ram}
+                                onChange={e => {
+                                  const newV = [...formData.storageVariants];
+                                  newV[i] = { ...newV[i], ram: e.target.value };
+                                  setFormData({ ...formData, storageVariants: newV });
+                                }}
+                                className="w-20 bg-black/20 text-xs font-bold py-2 px-3 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors"
+                              />
+                              <input
+                                placeholder="GB"
+                                type="number"
+                                value={v.storage}
+                                onChange={e => {
+                                  const newV = [...formData.storageVariants];
+                                  newV[i] = { ...newV[i], storage: e.target.value };
+                                  setFormData({ ...formData, storageVariants: newV });
+                                }}
+                                className="w-20 bg-black/20 text-xs font-bold py-2 px-3 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors"
+                              />
+                            </>
+                          )}
+
+                          {/* Price input */}
+                          <div className="flex-1 relative">
+                            <input
+                              required
+                              placeholder="Narxi (so'm)"
+                              type="number"
+                              value={v.price}
+                              onChange={e => {
+                                const newV = [...formData.storageVariants];
+                                newV[i] = { ...newV[i], price: e.target.value };
+                                setFormData({ ...formData, storageVariants: newV });
+                              }}
+                              className="w-full bg-black/20 text-sm font-bold py-2 px-4 pr-14 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors font-mono"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-600 uppercase">UZS</span>
+                          </div>
+
+                          {/* Remove button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newV = [...formData.storageVariants];
+                              newV.splice(i, 1);
+                              setFormData({ ...formData, storageVariants: newV });
+                            }}
+                            className="text-red-400 hover:text-red-300 w-9 h-9 flex justify-center items-center rounded-xl bg-red-400/10 hover:bg-red-400/20 transition-colors shrink-0"
+                          >
+                            <X size={15} />
                           </button>
                         </div>
                       ))}
