@@ -244,12 +244,7 @@ export default function ProductPage() {
                     {storageVariants.length > 0 && (
                         <div className="mb-1">
                             <p className="text-sm font-bold text-gray-800 mb-3">
-                                {lang === 'uz' ? 'Konfiguratsiya: ' : 'Конфигурация: '}
-                                <span className="font-normal text-gray-500">
-                                    {selectedStorageVariant?.ram ? `${selectedStorageVariant.ram}GB / ` : ''}
-                                    {selectedStorageVariant?.storage ? (selectedStorageVariant.storage >= 1024 ? `${selectedStorageVariant.storage/1024}TB` : `${selectedStorageVariant.storage}GB`) : ''}
-                                    {!selectedStorageVariant?.ram && lang === 'uz' ? ' Xotira' : (!selectedStorageVariant?.ram && lang === 'ru' ? ' Память' : '')}
-                                </span>
+                                {lang === 'uz' ? 'Xotirani tanlang:' : 'Выберите память:'}
                             </p>
                             <div className="flex gap-2 flex-wrap mb-4">
                                 {storageVariants.map((v: StorageVariant) => {

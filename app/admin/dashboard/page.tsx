@@ -25,6 +25,7 @@ interface NewProduct {
     specs: { key: string; value: string }[];
     extraImages: string[];
     variants: { color: string; colorName: string; colorNameRu: string; image: string }[];
+    storageVariants: { ram: string; storage: string; price: string }[];
 }
 
 interface NewCategory {
@@ -40,6 +41,7 @@ const emptyProduct: NewProduct = {
     specs: [],
     extraImages: [],
     variants: [],
+    storageVariants: [],
 };
 
 const emptyCategory: NewCategory = {
@@ -272,6 +274,11 @@ export default function AdminDashboard() {
         const creditMarkup = newProduct.creditMarkupPercent ? parseInt(newProduct.creditMarkupPercent) : undefined;
         const validExtraImages = newProduct.extraImages.filter(u => u.trim());
         const validVariants = newProduct.variants.filter(v => v.colorName.trim());
+        const validStorageVariants = newProduct.storageVariants.filter(sv => sv.storage && sv.price).map(sv => ({
+            ram: sv.ram ? Number(sv.ram) : 0,
+            storage: Number(sv.storage),
+            price: Number(sv.price),
+        }));
 
         try {
             if (editProduct) {
@@ -287,6 +294,7 @@ export default function AdminDashboard() {
                         creditMarkupPercent: creditMarkup, specs,
                         extraImages: validExtraImages,
                         variants: validVariants,
+                        storageVariants: validStorageVariants,
                     }),
                 });
                 const data = await res.json();
@@ -305,6 +313,7 @@ export default function AdminDashboard() {
                         discountPercent: discNum, creditMarkupPercent: creditMarkup, specs,
                         extraImages: validExtraImages,
                         variants: validVariants,
+                        storageVariants: validStorageVariants,
                     }),
                 });
                 const data = await res.json();
@@ -324,6 +333,7 @@ export default function AdminDashboard() {
         // Mavjud rasmlar va variantlarni API dan yuklaymiz
         let extraImages: string[] = [];
         let variants: { color: string; colorName: string; colorNameRu: string; image: string }[] = [];
+        let storageVariants: { ram: string; storage: string; price: string }[] = [];
         try {
             const res = await fetch(`/api/products/${p.id}`);
             const data = await res.json();
@@ -335,6 +345,11 @@ export default function AdminDashboard() {
                     colorName: v.colorName || '',
                     colorNameRu: v.colorNameRu || '',
                     image: v.image || '',
+                }));
+                storageVariants = (data.product.storageVariants || []).map((sv: any) => ({
+                    ram: sv.ram ? String(sv.ram) : '',
+                    storage: String(sv.storage),
+                    price: String(sv.price),
                 }));
             }
         } catch (e) {
@@ -351,6 +366,7 @@ export default function AdminDashboard() {
             specs: specsArray,
             extraImages,
             variants,
+            storageVariants,
         });
         setImageMode('url');
         setShowAddForm(true);
@@ -1154,6 +1170,59 @@ export default function AdminDashboard() {
                                                                 }} />
                                                             </label>
                                                             {v.image && <img src={v.image} alt={v.colorName} className="w-12 h-12 rounded-lg object-cover border border-[#333] shrink-0" />}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* ── XOTIRA VARIANTLARI ── */}
+                                        <div className="mt-4 pt-4 border-t border-[#1e1e1e]">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <label className="text-gray-400 text-xs font-bold uppercase tracking-wider">💾 Xotira variantlari (128GB, 256GB...)</label>
+                                                <button type="button"
+                                                    onClick={() => setNewProduct(p => ({ ...p, storageVariants: [...p.storageVariants, { ram: '', storage: '', price: newProduct.price || '' }] }))}
+                                                    className="text-xs bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1">
+                                                    <Plus size={12} /> Variant qo'shish
+                                                </button>
+                                            </div>
+                                            {newProduct.storageVariants.length === 0 && (
+                                                <p className="text-gray-600 text-xs italic">Masalan: 128GB — 5 990 000 so'm | 256GB — 7 490 000 so'm (RAM ixtiyoriy)</p>
+                                            )}
+                                            <div className="space-y-2">
+                                                {newProduct.storageVariants.map((sv, idx) => (
+                                                    <div key={idx} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-3">
+                                                        <div className="grid grid-cols-3 gap-2 mb-2">
+                                                            <div>
+                                                                <label className="text-gray-600 text-[10px] block mb-1">RAM (GB) — ixtiyoriy</label>
+                                                                <input type="number" value={sv.ram}
+                                                                    onChange={e => { const svs = [...newProduct.storageVariants]; svs[idx] = { ...svs[idx], ram: e.target.value }; setNewProduct(p => ({ ...p, storageVariants: svs })); }}
+                                                                    placeholder="8" className="w-full bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-gray-600 text-[10px] block mb-1">Xotira (GB) *</label>
+                                                                <input type="number" value={sv.storage}
+                                                                    onChange={e => { const svs = [...newProduct.storageVariants]; svs[idx] = { ...svs[idx], storage: e.target.value }; setNewProduct(p => ({ ...p, storageVariants: svs })); }}
+                                                                    placeholder="128" className="w-full bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="text-gray-600 text-[10px] block mb-1">Narx (so'm) *</label>
+                                                                <input type="number" value={sv.price}
+                                                                    onChange={e => { const svs = [...newProduct.storageVariants]; svs[idx] = { ...svs[idx], price: e.target.value }; setNewProduct(p => ({ ...p, storageVariants: svs })); }}
+                                                                    placeholder="5990000" className="w-full bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-gray-500 text-xs">
+                                                                {sv.storage ? (Number(sv.storage) >= 1024 ? `${Number(sv.storage)/1024}TB` : `${sv.storage}GB`) : ''}
+                                                                {sv.ram ? ` · ${sv.ram}GB RAM` : ''}
+                                                                {sv.price ? ` · ${formatPrice(Number(sv.price))}` : ''}
+                                                            </span>
+                                                            <button type="button"
+                                                                onClick={() => setNewProduct(p => ({ ...p, storageVariants: p.storageVariants.filter((_, i) => i !== idx) }))}
+                                                                className="w-7 h-7 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 flex items-center justify-center shrink-0 transition-colors">
+                                                                <X size={13} />
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 ))}
