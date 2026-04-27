@@ -76,7 +76,10 @@ export default function CartPage() {
     // Kredit narxini hisoblash
     const calcCreditTotal = (interestPercent: number) => {
         return cart.reduce((sum, i) => {
-            const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
+            const basePrice = Number(i.product.price);
+            const storagePrice = i.selectedVariant ? Number(i.selectedVariant.price) : 0;
+            const colorPrice = i.selectedColorPrice ? Number(i.selectedColorPrice) : 0;
+            const price = basePrice + storagePrice + colorPrice;
             return sum + Math.ceil(price * (1 + interestPercent / 100)) * i.quantity;
         }, 0);
     };
@@ -123,7 +126,10 @@ export default function CartPage() {
         setSending(true);
         try {
             const items = cart.map(i => {
-                const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
+                const basePrice = Number(i.product.price);
+                const storagePrice = i.selectedVariant ? Number(i.selectedVariant.price) : 0;
+                const colorPrice = i.selectedColorPrice ? Number(i.selectedColorPrice) : 0;
+                const price = basePrice + storagePrice + colorPrice;
                 const interestPercent = paymentMethod === 'credit' && selectedPlan ? selectedPlan.interestPercent : 0;
                 const itemPrice = Math.ceil(price * (1 + interestPercent / 100));
                 
@@ -483,7 +489,10 @@ export default function CartPage() {
                         {lang === 'uz' ? 'Buyurtma:' : 'Заказ:'}
                     </p>
                     {cart.map((i, idx) => {
-                        const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
+                        const basePrice = Number(i.product.price);
+                        const storagePrice = i.selectedVariant ? Number(i.selectedVariant.price) : 0;
+                        const colorPrice = i.selectedColorPrice ? Number(i.selectedColorPrice) : 0;
+                        const price = basePrice + storagePrice + colorPrice;
                         let itemName = i.product.name;
                         if (i.selectedVariant) {
                             const storageStr = i.selectedVariant.storage >= 1024 ? `${i.selectedVariant.storage/1024}TB` : `${i.selectedVariant.storage}GB`;
@@ -539,8 +548,11 @@ export default function CartPage() {
                 {/* Cart Items */}
                 <div className="md:col-span-3 space-y-3">
                     {cart.map((item, idx) => {
-                        const { product, quantity, selectedColor, selectedVariant } = item;
-                        const price = selectedVariant ? Number(selectedVariant.price) : product.price;
+                        const { product, quantity, selectedColor, selectedVariant, selectedColorPrice } = item;
+                        const basePrice = Number(product.price);
+                        const storagePrice = selectedVariant ? Number(selectedVariant.price) : 0;
+                        const colorPrice = selectedColorPrice ? Number(selectedColorPrice) : 0;
+                        const price = basePrice + storagePrice + colorPrice;
 
                         return (
                         <div key={`${product.id}-${selectedColor}-${selectedVariant?.id || idx}`} className="bg-white border border-gray-100 rounded-2xl p-4 flex gap-4 items-start shadow-sm">

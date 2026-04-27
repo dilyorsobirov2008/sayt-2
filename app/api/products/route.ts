@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const dbProducts = await prisma.product.findMany({
-      include: { category: true, storageVariants: true },
+      include: { category: true, storageVariants: true, variants: true },
       orderBy: { created_at: 'desc' },
     });
 
@@ -35,6 +35,14 @@ export async function GET() {
          storage: Number(sv.storage),
          price: Number(sv.price),
          sku: sv.sku
+      })) : [],
+      variants: p.variants ? p.variants.map((v: any) => ({
+        id: v.id,
+        color: v.color,
+        colorName: v.colorName,
+        colorNameRu: v.colorNameRu,
+        image: v.image,
+        price: Number(v.price) || 0,
       })) : [],
       // Keep raw fields for admin
       title_uz: p.title_uz,
@@ -126,6 +134,7 @@ export async function POST(req: NextRequest) {
           colorName: v.colorName,
           colorNameRu: v.colorNameRu || null,
           image: v.image || null,
+          price: Number(v.price) || 0,
         })),
       });
     }
@@ -229,6 +238,7 @@ export async function PUT(req: NextRequest) {
             colorName: v.colorName,
             colorNameRu: v.colorNameRu || null,
             image: v.image || null,
+            price: Number(v.price) || 0,
           })),
         });
       }

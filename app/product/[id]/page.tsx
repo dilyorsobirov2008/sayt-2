@@ -9,7 +9,7 @@ import { formatPrice } from '@/lib/utils';
 import { ShoppingCart, Heart, Star, ArrowLeft, CheckCircle, XCircle, Send, ChevronLeft, ChevronRight, LogIn } from 'lucide-react';
 import { ProductCard } from '@/components/ProductCard';
 
-interface Variant { id: number; color: string; colorName: string; colorNameRu: string | null; image: string | null; }
+interface Variant { id: number; color: string; colorName: string; colorNameRu: string | null; image: string | null; price: number; }
 interface StorageVariant { id: number; ram: number; storage: number; price: number; sku: string | null; }
 interface Review { id: number; userName: string; rating: number; comment: string; createdAt: string; userId?: number | null; }
 
@@ -66,6 +66,9 @@ export default function ProductPage() {
                     const imgs = data.product.images?.length ? data.product.images : [data.product.image];
                     setImages(imgs);
                     setVariants(data.product.variants || []);
+                    if (data.product.variants && data.product.variants.length > 0) {
+                        setSelectedVariant(data.product.variants[0]);
+                    }
                     if (data.product.storageVariants && data.product.storageVariants.length > 0) {
                         setStorageVariants(data.product.storageVariants);
                         setSelectedStorageVariant(data.product.storageVariants[0]);
@@ -111,7 +114,7 @@ export default function ProductPage() {
     const fav = isFavorite(product.id);
     const activePlans = installmentPlans.filter(p => p.isActive).sort((a, b) => a.months - b.months);
     const selectedPlan = selectedPlanId ? activePlans.find(p => p.id === selectedPlanId) : activePlans[0] ?? null;
-    const displayPrice = selectedStorageVariant ? selectedStorageVariant.price : product.price;
+    const displayPrice = Number(product.price) + (selectedStorageVariant?.price ? Number(selectedStorageVariant.price) : 0) + (selectedVariant?.price ? Number(selectedVariant.price) : 0);
     const calcPlanPrice = (price: number, pct: number) => Math.ceil(price * (1 + pct / 100));
     const calcMonthly = (price: number, months: number, pct: number) => Math.ceil(calcPlanPrice(price, pct) / months);
     const similarProducts = products.filter(p => p.category === product.category && p.id !== product.id && p.inStock).slice(0, 5);
@@ -257,8 +260,9 @@ export default function ProductPage() {
                                             {v.ram > 0 ? (
                                                 <span>{v.ram}/{storageText.replace('GB','')} <span className="text-xs font-normal text-gray-500 ml-0.5">GB</span></span>
                                             ) : (
-                                                <span>{storageText} <span className="text-[10px] text-gray-400 font-medium ml-0.5">{lang === 'uz' ? 'Xotira' : 'Память'}</span></span>
+                                                <span>{storageText}</span>
                                             )}
+                                            {Number(v.price) > 0 && <span className="ml-1 text-xs text-yellow-600">(+{formatPrice(Number(v.price))})</span>}
                                         </button>
                                     );
                                 })}
@@ -281,6 +285,7 @@ export default function ProductPage() {
                                             onClick={() => setSelectedVariant(isSelected ? null : v)}
                                             className={`px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-all ${isSelected ? 'border-yellow-400 bg-yellow-50 text-yellow-800 shadow-sm' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'}`}>
                                             {variantName}
+                                            {Number(v.price) > 0 && <span className="ml-1 text-xs text-yellow-600">(+{formatPrice(Number(v.price))})</span>}
                                         </button>
                                     );
                                 })}
@@ -347,10 +352,14 @@ export default function ProductPage() {
                                 alert(lang === 'uz' ? 'Iltimos rangni tanlang!' : 'Пожалуйста выберите цвет!');
                                 return;
                             }
-                            useStore.getState().clearCart(); 
-                            addToCart(product, selectedVariant?.colorName || undefined, selectedStorageVariant || undefined); 
-                            router.push('/cart?direct=1'); 
-                        }}
+                            if (storageVariants.length > 0 && !selectedStorageVariant) {
+                                                alert(lang === 'uz' ? 'Iltimos xotira variantini tanlang!' : 'Пожалуйста выберите вариант памяти!');
+                                                return;
+                                            }
+                                            useStore.getState().clearCart(); 
+                                            addToCart(product, selectedVariant || undefined, selectedStorageVariant || undefined); 
+                                            router.push('/cart?direct=1'); 
+                                        }}
                             disabled={!product.inStock}
                             className={`flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-extrabold text-base transition-all active:scale-95 ${product.inStock ? 'bg-yellow-400 hover:bg-yellow-500 text-black shadow-sm' : 'bg-gray-100 text-gray-400 cursor-not-allowed'}`}>
                             <ShoppingCart size={20} />{lang === 'uz' ? 'Hoziroq xarid qilish' : 'Купить сейчас'}

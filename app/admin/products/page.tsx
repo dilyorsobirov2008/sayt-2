@@ -31,7 +31,8 @@ export default function ProductsAdminPage() {
     available: true,
     weight: '',
     category_name: '',
-    storageVariants: [] as { ram: string, storage: string, price: string, sku: string }[]
+    storageVariants: [] as { ram: string, storage: string, price: string, sku: string }[],
+    variants: [] as { color: string, colorName: string, price: string, image: string }[]
   });
 
   const fetchData = useCallback(async () => {
@@ -61,7 +62,7 @@ export default function ProductsAdminPage() {
       });
       if (res.ok) {
         setShowAddModal(false);
-        setFormData({ title_uz: '', price: '', available: true, weight: '', category_name: '', storageVariants: [] });
+        setFormData({ title_uz: '', price: '', available: true, weight: '', category_name: '', storageVariants: [], variants: [] });
         fetchData();
       }
     } catch (err) {
@@ -456,6 +457,145 @@ export default function ProductsAdminPage() {
                               const newV = [...formData.storageVariants];
                               newV.splice(i, 1);
                               setFormData({ ...formData, storageVariants: newV });
+                            }}
+                            className="text-red-400 hover:text-red-300 w-9 h-9 flex justify-center items-center rounded-xl bg-red-400/10 hover:bg-red-400/20 transition-colors shrink-0"
+                          >
+                            <X size={15} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Color Variants UI */}
+                <div className="col-span-1 md:col-span-2 space-y-4">
+                  <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">
+                    Rang Variantlari
+                  </label>
+
+                  {/* Preset chips */}
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      { color: '#000000', name: 'Black' },
+                      { color: '#FFFFFF', name: 'White' },
+                      { color: '#808080', name: 'Gray' },
+                      { color: '#C0C0C0', name: 'Silver' },
+                      { color: '#FF0000', name: 'Red' },
+                      { color: '#0000FF', name: 'Blue' },
+                      { color: '#008000', name: 'Green' },
+                      { color: '#FFC0CB', name: 'Pink' },
+                      { color: '#FFA500', name: 'Orange' },
+                      { color: '#800080', name: 'Purple' },
+                      { color: '#FFD700', name: 'Gold' },
+                    ].map((preset) => {
+                      const alreadyAdded = formData.variants?.some(
+                        v => v.colorName === preset.name
+                      );
+                      return (
+                        <button
+                          key={preset.name}
+                          type="button"
+                          onClick={() => {
+                            if (alreadyAdded) return;
+                            setFormData({
+                              ...formData,
+                              variants: [
+                                ...(formData.variants || []),
+                                { color: preset.color, colorName: preset.name, price: '', image: '' }
+                              ]
+                            });
+                          }}
+                          className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest border transition-all
+                            ${alreadyAdded
+                              ? 'bg-indigo-500/30 border-indigo-500/60 text-indigo-300 cursor-not-allowed'
+                              : 'bg-white/5 border-white/10 text-gray-400 hover:bg-indigo-500/20 hover:border-indigo-500/40 hover:text-indigo-300 cursor-pointer'
+                            }`}
+                        >
+                          <div className="w-3 h-3 rounded-full shadow-sm border border-black/20" style={{ backgroundColor: preset.color }} />
+                          {preset.name}
+                        </button>
+                      );
+                    })}
+                    {/* Custom variant button */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        variants: [...(formData.variants || []), { color: '#000000', colorName: '', price: '', image: '' }]
+                      })}
+                      className="px-3 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest border border-dashed border-white/20 text-gray-500 hover:border-indigo-500/40 hover:text-indigo-400 transition-all"
+                    >
+                      + Boshqa Rang
+                    </button>
+                  </div>
+
+                  {/* Selected color variants list */}
+                  {formData.variants && formData.variants.length > 0 && (
+                    <div className="space-y-2 mt-2">
+                      {formData.variants.map((v, i) => (
+                        <div key={i} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-3">
+                          
+                          {/* Color input */}
+                          <input
+                            type="color"
+                            value={v.color || '#000000'}
+                            onChange={e => {
+                              const newV = [...formData.variants];
+                              newV[i] = { ...newV[i], color: e.target.value };
+                              setFormData({ ...formData, variants: newV });
+                            }}
+                            className="w-10 h-10 rounded-xl cursor-pointer bg-transparent border-none shrink-0"
+                          />
+
+                          {/* Name input */}
+                          <input
+                            required
+                            placeholder="Rang nomi"
+                            value={v.colorName}
+                            onChange={e => {
+                              const newV = [...formData.variants];
+                              newV[i] = { ...newV[i], colorName: e.target.value };
+                              setFormData({ ...formData, variants: newV });
+                            }}
+                            className="w-32 bg-black/20 text-xs font-bold py-2 px-3 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors"
+                          />
+
+                          {/* Price input */}
+                          <div className="flex-1 relative">
+                            <input
+                              placeholder="Qo'shimcha narxi (so'm, 0 bo'lsa tekin)"
+                              type="number"
+                              value={v.price}
+                              onChange={e => {
+                                const newV = [...formData.variants];
+                                newV[i] = { ...newV[i], price: e.target.value };
+                                setFormData({ ...formData, variants: newV });
+                              }}
+                              className="w-full bg-black/20 text-sm font-bold py-2 px-4 pr-14 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors font-mono"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-gray-600 uppercase">UZS</span>
+                          </div>
+
+                          {/* Custom image option (optional) */}
+                          <input
+                            placeholder="Rasm URL (ixtiyoriy)"
+                            value={v.image || ''}
+                            onChange={e => {
+                              const newV = [...formData.variants];
+                              newV[i] = { ...newV[i], image: e.target.value };
+                              setFormData({ ...formData, variants: newV });
+                            }}
+                            className="w-40 bg-black/20 text-xs font-bold py-2 px-3 rounded-xl outline-none border border-transparent focus:border-indigo-500 transition-colors hidden sm:block"
+                          />
+
+                          {/* Remove button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newV = [...formData.variants];
+                              newV.splice(i, 1);
+                              setFormData({ ...formData, variants: newV });
                             }}
                             className="text-red-400 hover:text-red-300 w-9 h-9 flex justify-center items-center rounded-xl bg-red-400/10 hover:bg-red-400/20 transition-colors shrink-0"
                           >

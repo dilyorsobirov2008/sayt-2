@@ -36,6 +36,7 @@ export async function GET(
         colorName: v.colorName,
         colorNameRu: v.colorNameRu,
         image: v.image,
+        price: Number(v.price) || 0,
       })),
       storageVariants: (p as any).storageVariants ? (p as any).storageVariants.map((sv: any) => ({
         id: sv.id,

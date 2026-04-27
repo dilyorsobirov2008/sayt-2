@@ -13,9 +13,9 @@ export interface InstallmentPlan {
 interface StoreState {
     // Cart (localStorage - per user)
     cart: CartItem[];
-    addToCart: (product: Product, selectedColor?: string, selectedVariant?: any) => void;
-    removeFromCart: (productId: number, selectedColor?: string, selectedVariantId?: number) => void;
-    updateQuantity: (productId: number, quantity: number, selectedColor?: string, selectedVariantId?: number) => void;
+    addToCart: (product: Product, selectedColorObj?: any, selectedVariant?: any) => void;
+    removeFromCart: (productId: number, selectedColorName?: string, selectedVariantId?: number) => void;
+    updateQuantity: (productId: number, quantity: number, selectedColorName?: string, selectedVariantId?: number) => void;
     clearCart: () => void;
     cartTotal: () => number;
     cartCount: () => number;
@@ -76,13 +76,13 @@ export const useStore = create<StoreState>()(
         (set: any, get: any) => ({
             // Cart
             cart: [] as CartItem[],
-            addToCart: (product: Product, selectedColor?: string, selectedVariant?: any) => {
+            addToCart: (product: Product, selectedColorObj?: any, selectedVariant?: any) => {
                 const cartList = get().cart;
                 
-                // Qidirish uchun unique "kalit" — id, rang va variant asosida
+                // Qidirish uchun unique "kalit" — id, rang nomi va variant asosida
                 const index = cartList.findIndex((i: any) => 
                     i.product.id === product.id && 
-                    i.selectedColor === selectedColor && 
+                    i.selectedColor === (selectedColorObj?.colorName || selectedColorObj) && 
                     i.selectedVariant?.id === selectedVariant?.id
                 );
 
@@ -91,11 +91,13 @@ export const useStore = create<StoreState>()(
                     newCart[index].quantity += 1;
                     set({ cart: newCart });
                 } else {
-                    set({ cart: [...cartList, { product, quantity: 1, selectedColor, selectedVariant }] });
+                    const colorName = typeof selectedColorObj === 'string' ? selectedColorObj : selectedColorObj?.colorName;
+                    const colorPrice = typeof selectedColorObj === 'object' && selectedColorObj?.price ? Number(selectedColorObj.price) : 0;
+                    set({ cart: [...cartList, { product, quantity: 1, selectedColor: colorName, selectedColorPrice: colorPrice, selectedVariant }] });
                 }
             },
-            removeFromCart: (productId: number, selectedColor?: string, selectedVariantId?: number) => {
-                if (selectedColor === undefined && selectedVariantId === undefined) {
+            removeFromCart: (productId: number, selectedColorName?: string, selectedVariantId?: number) => {
+                if (selectedColorName === undefined && selectedVariantId === undefined) {
                      // Eski usuldagi argumentlar (faqat ID) kelsa, shu ID ga tegishli barcha narsani o'chirish (yoki eng birinchisini)
                      set((s: any) => ({ cart: s.cart.filter((i: any) => i.product.id !== productId) }));
                      return;
@@ -104,18 +106,18 @@ export const useStore = create<StoreState>()(
                 set((s: any) => ({ 
                     cart: s.cart.filter((i: any) => 
                         !(i.product.id === productId && 
-                          i.selectedColor === selectedColor && 
+                          i.selectedColor === selectedColorName && 
                           i.selectedVariant?.id === selectedVariantId)
                     ) 
                 }));
             },
-            updateQuantity: (productId: number, quantity: number, selectedColor?: string, selectedVariantId?: number) => {
+            updateQuantity: (productId: number, quantity: number, selectedColorName?: string, selectedVariantId?: number) => {
                 if (quantity <= 0) {
-                    get().removeFromCart(productId, selectedColor, selectedVariantId);
+                    get().removeFromCart(productId, selectedColorName, selectedVariantId);
                 } else {
                     set((s: any) => ({
                         cart: s.cart.map((i: any) =>
-                            (i.product.id === productId && i.selectedColor === selectedColor && i.selectedVariant?.id === selectedVariantId)
+                            (i.product.id === productId && i.selectedColor === selectedColorName && i.selectedVariant?.id === selectedVariantId)
                                 ? { ...i, quantity } : i
                         )
                     }));
@@ -123,8 +125,10 @@ export const useStore = create<StoreState>()(
             },
             clearCart: () => set({ cart: [] as CartItem[] }),
             cartTotal: () => get().cart.reduce((sum: number, i: any) => {
-                const price = i.selectedVariant ? Number(i.selectedVariant.price) : i.product.price;
-                return sum + price * i.quantity;
+                const basePrice = Number(i.product.price);
+                const storagePrice = i.selectedVariant ? Number(i.selectedVariant.price) : 0;
+                const colorPrice = i.selectedColorPrice ? Number(i.selectedColorPrice) : 0;
+                return sum + (basePrice + storagePrice + colorPrice) * i.quantity;
             }, 0),
             cartCount: () => get().cart.reduce((sum: number, i: any) => sum + i.quantity, 0),
 

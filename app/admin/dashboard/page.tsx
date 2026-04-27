@@ -24,7 +24,7 @@ interface NewProduct {
     creditMarkupPercent: string;
     specs: { key: string; value: string }[];
     extraImages: string[];
-    variants: { color: string; colorName: string; colorNameRu: string; image: string }[];
+    variants: { color: string; colorName: string; colorNameRu: string; image: string; price: string }[];
     storageVariants: { ram: string; storage: string; price: string }[];
 }
 
@@ -273,8 +273,11 @@ export default function AdminDashboard() {
         const specs = Object.keys(specsObj).length > 0 ? specsObj : undefined;
         const creditMarkup = newProduct.creditMarkupPercent ? parseInt(newProduct.creditMarkupPercent) : undefined;
         const validExtraImages = newProduct.extraImages.filter(u => u.trim());
-        const validVariants = newProduct.variants.filter(v => v.colorName.trim());
-        const validStorageVariants = newProduct.storageVariants.filter(sv => sv.storage && sv.price).map(sv => ({
+        const validVariants = newProduct.variants.filter(v => v.colorName.trim()).map(v => ({
+            ...v,
+            price: v.price ? Number(v.price) : 0,
+        }));
+        const validStorageVariants = newProduct.storageVariants.filter(sv => sv.storage && sv.price !== undefined).map(sv => ({
             ram: sv.ram ? Number(sv.ram) : 0,
             storage: Number(sv.storage),
             price: Number(sv.price),
@@ -345,6 +348,7 @@ export default function AdminDashboard() {
                     colorName: v.colorName || '',
                     colorNameRu: v.colorNameRu || '',
                     image: v.image || '',
+                    price: v.price ? String(v.price) : '0',
                 }));
                 storageVariants = (data.product.storageVariants || []).map((sv: any) => ({
                     ram: sv.ram ? String(sv.ram) : '',
@@ -1110,7 +1114,7 @@ export default function AdminDashboard() {
                                             <div className="flex items-center justify-between mb-3">
                                                 <label className="text-gray-400 text-xs font-bold uppercase tracking-wider">🎨 Rang variantlari</label>
                                                 <button type="button"
-                                                    onClick={() => setNewProduct(p => ({ ...p, variants: [...p.variants, { color: '#000000', colorName: '', colorNameRu: '', image: '' }] }))}
+                                                    onClick={() => setNewProduct(p => ({ ...p, variants: [...p.variants, { color: '#000000', colorName: '', colorNameRu: '', image: '', price: '0' }] }))}
                                                     className="text-xs bg-yellow-400/10 text-yellow-400 hover:bg-yellow-400/20 px-3 py-1.5 rounded-lg font-bold transition-colors flex items-center gap-1">
                                                     <Plus size={12} /> Rang qo'shish
                                                 </button>
@@ -1133,6 +1137,10 @@ export default function AdminDashboard() {
                                                                 onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], colorNameRu: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
                                                                 placeholder="Nomi RU (Чёрный)"
                                                                 className="flex-1 bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
+                                                            <input type="number" value={v.price}
+                                                                onChange={e => { const vs = [...newProduct.variants]; vs[idx] = { ...vs[idx], price: e.target.value }; setNewProduct(p => ({ ...p, variants: vs })); }}
+                                                                placeholder="+ Qo'sh. narx"
+                                                                className="w-24 bg-[#111] border border-[#333] text-white rounded-lg px-2 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
                                                             <button type="button"
                                                                 onClick={() => setNewProduct(p => ({ ...p, variants: p.variants.filter((_, i) => i !== idx) }))}
                                                                 className="w-8 h-8 rounded-lg bg-red-500/10 hover:bg-red-500/25 text-red-400 flex items-center justify-center shrink-0">
@@ -1187,7 +1195,7 @@ export default function AdminDashboard() {
                                                 </button>
                                             </div>
                                             {newProduct.storageVariants.length === 0 && (
-                                                <p className="text-gray-600 text-xs italic">Masalan: 128GB — 5 990 000 so'm | 256GB — 7 490 000 so'm (RAM ixtiyoriy)</p>
+                                                <p className="text-gray-600 text-xs italic">Masalan: 128GB — 0 so'm | 256GB — 150000 so'm (Asosiy narxga qo'shiladi)</p>
                                             )}
                                             <div className="space-y-2">
                                                 {newProduct.storageVariants.map((sv, idx) => (
@@ -1206,7 +1214,7 @@ export default function AdminDashboard() {
                                                                     placeholder="128" className="w-full bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
                                                             </div>
                                                             <div>
-                                                                <label className="text-gray-600 text-[10px] block mb-1">Narx (so'm) *</label>
+                                                                <label className="text-gray-600 text-[10px] block mb-1">Narx (+) *</label>
                                                                 <input type="number" value={sv.price}
                                                                     onChange={e => { const svs = [...newProduct.storageVariants]; svs[idx] = { ...svs[idx], price: e.target.value }; setNewProduct(p => ({ ...p, storageVariants: svs })); }}
                                                                     placeholder="5990000" className="w-full bg-[#111] border border-[#333] text-white rounded-lg px-3 py-2 text-sm focus:border-yellow-400 outline-none placeholder-gray-600" />
