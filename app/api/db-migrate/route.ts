@@ -106,6 +106,10 @@ export async function GET() {
       )
     `;
 
+    try {
+      await sql`ALTER TABLE "ProductVariant" ADD COLUMN "price" DECIMAL(12,2) NOT NULL DEFAULT 0;`
+    } catch(e) { /* Column already exists */ }
+
     await sql`
       CREATE TABLE IF NOT EXISTS "StorageVariant" (
         "id" SERIAL PRIMARY KEY,
