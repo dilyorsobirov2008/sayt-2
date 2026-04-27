@@ -262,7 +262,6 @@ export default function ProductPage() {
                                             ) : (
                                                 <span>{storageText}</span>
                                             )}
-                                            {Number(v.price) > 0 && <span className="ml-1 text-xs text-yellow-600">(+{formatPrice(Number(v.price))})</span>}
                                         </button>
                                     );
                                 })}
@@ -285,7 +284,6 @@ export default function ProductPage() {
                                             onClick={() => setSelectedVariant(isSelected ? null : v)}
                                             className={`px-4 py-2 rounded-xl border-2 font-semibold text-sm transition-all ${isSelected ? 'border-yellow-400 bg-yellow-50 text-yellow-800 shadow-sm' : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'}`}>
                                             {variantName}
-                                            {Number(v.price) > 0 && <span className="ml-1 text-xs text-yellow-600">(+{formatPrice(Number(v.price))})</span>}
                                         </button>
                                     );
                                 })}
