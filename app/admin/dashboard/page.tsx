@@ -335,7 +335,7 @@ export default function AdminDashboard() {
 
         // Mavjud rasmlar va variantlarni API dan yuklaymiz
         let extraImages: string[] = [];
-        let variants: { color: string; colorName: string; colorNameRu: string; image: string }[] = [];
+        let variants: { color: string; colorName: string; colorNameRu: string; image: string; price: string }[] = [];
         let storageVariants: { ram: string; storage: string; price: string }[] = [];
         try {
             const res = await fetch(`/api/products/${p.id}`);
