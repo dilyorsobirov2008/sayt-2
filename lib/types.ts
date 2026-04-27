@@ -55,6 +55,7 @@ export interface CartItem {
   product: Product;
   quantity: number;
   selectedColor?: string;
+  selectedColorPrice?: number;
   selectedVariant?: StorageVariant;
 }
 
