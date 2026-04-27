@@ -6,6 +6,12 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    try {
+      await prisma.$executeRawUnsafe(`ALTER TABLE "ProductVariant" ADD COLUMN IF NOT EXISTS "price" DECIMAL(12,2) NOT NULL DEFAULT 0;`);
+    } catch (e) {
+      // Ignore if exists or error
+    }
+
     const dbProducts = await prisma.product.findMany({
       include: { category: true, storageVariants: true, variants: true },
       orderBy: { created_at: 'desc' },
