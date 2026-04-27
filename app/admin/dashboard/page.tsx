@@ -240,7 +240,11 @@ export default function AdminDashboard() {
             if (!res.ok) throw new Error(data.error || 'Server xatosi');
             if (data.specs && Array.isArray(data.specs)) {
                 setNewProduct(p => ({ ...p, specs: data.specs }));
-                showToast("✅ Xususiyatlar yuklandi!");
+                if (data.fallback) {
+                    showToast('📋 Shablon xususiyatlar yuklandi (AI limit tugagan). Tahrirlashingiz mumkin!');
+                } else {
+                    showToast('✅ AI xususiyatlar muvaffaqiyatli yuklandi!');
+                }
             }
         } catch (err: any) {
             showToast(`❌ Xatolik: ${err.message}`);
