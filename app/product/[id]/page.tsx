@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useStore } from '@/lib/store';
+import type { SelectedColorObj } from '@/lib/types';
 import { uz, ru } from '@/lib/i18n';
 import { formatPrice } from '@/lib/utils';
 import { ShoppingCart, Heart, Star, ArrowLeft, CheckCircle, XCircle, Send, ChevronLeft, ChevronRight, LogIn } from 'lucide-react';
@@ -354,8 +355,16 @@ export default function ProductPage() {
                                                 alert(lang === 'uz' ? 'Iltimos xotira variantini tanlang!' : 'Пожалуйста выберите вариант памяти!');
                                                 return;
                                             }
-                                            useStore.getState().clearCart(); 
-                                            addToCart(product, selectedVariant || undefined, selectedStorageVariant || undefined); 
+                                            useStore.getState().clearCart();
+                                            const mappedVariant: SelectedColorObj | undefined = selectedVariant
+                                                ? {
+                                                    colorName: selectedVariant.colorName,
+                                                    color: selectedVariant.color,
+                                                    price: selectedVariant.price,
+                                                    image: selectedVariant.image ?? undefined,
+                                                  }
+                                                : undefined;
+                                            addToCart(product, mappedVariant, selectedStorageVariant || undefined);
                                             router.push('/cart?direct=1'); 
                                         }}
                             disabled={!product.inStock}
