@@ -109,7 +109,8 @@ export interface CartItem {
 // ─── Order ────────────────────────────────────────────────────────────────────
 
 export type PaymentMethod = 'cash' | 'credit';
-export type OrderStatus = 'new' | 'processing' | 'delivered' | 'cancelled';
+export type OrderStatus = 'new' | 'processing' | 'delivering' | 'delivered' | 'cancelled';
+
 
 export interface OrderItem {
   name: string;
