@@ -134,9 +134,18 @@ export interface Order {
   status: OrderStatus;
   date: string;
   address?: string;
+  region?: string;
+  district?: string;
+  floor?: string;
+  deliveryMethod?: string;
+  deliveryTerm?: string;
+  selectedColor?: string;
+  selectedStorage?: string;
   installment?: number;
   paymentMethod: PaymentMethod;
   telegramSent: boolean;
+  telegramMessageId?: number;
+  telegramChatId?: string;
   createdAt?: string;
 }
 

@@ -1359,9 +1359,9 @@ export default function AdminDashboard() {
                                                     <p className="text-gray-500 text-[11px]">🏠 {o.address} {o.floor ? `· ${o.floor}-qavat` : ''}</p>
                                                     <p className="text-blue-400 text-[11px]">🚚 {o.deliveryMethod === 'delivery' ? 'Yetkazib berish' : 'Do\'kondan olib ketish'} ({o.deliveryTerm})</p>
                                                 </div>
-                                                {o.installment > 1 && (
+                                                {(o.installment ?? 0) > 1 && (
                                                     <p className="text-yellow-400 text-[11px] font-semibold">
-                                                        🏦 {o.installment} oylik muddatli to'lov — {formatPrice(Math.round(o.amount / o.installment))}/oy
+                                                        🏦 {o.installment} oylik muddatli to'lov — {formatPrice(Math.round(o.amount / (o.installment ?? 1)))}/oy
                                                     </p>
                                                 )}
                                             </div>
