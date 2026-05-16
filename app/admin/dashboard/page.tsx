@@ -64,6 +64,33 @@ const TABS = [
 
 import { useStore } from '@/lib/store';
 
+// ── Status display helpers (avoids TypeScript TS2367 narrowing error) ──
+const STATUS_BG: Record<string, string> = {
+    new:        'bg-yellow-400 text-black',
+    processing: 'bg-red-500 text-white',
+    delivering: 'bg-orange-500 text-white',
+    delivered:  'bg-green-500 text-white',
+    cancelled:  'bg-gray-500 text-white',
+};
+
+// Dashboard top cards uchun qisqa labellar
+const STATUS_LABEL_SHORT: Record<string, string> = {
+    new:        'Yangi',
+    processing: '❌ Bekor',
+    delivering: "🚚 Yo'lda",
+    delivered:  '✅ Tayyor',
+    cancelled:  '✅ Tayyor',
+};
+
+// Orders tab uchun to'liq labellar
+const STATUS_LABEL: Record<string, string> = {
+    new:        'Yangi',
+    processing: '❌ Yetkazib berilmadi',
+    delivering: '🚚 Yetkazib berilyapti',
+    delivered:  '✅ Yetkazildi',
+    cancelled:  '❌ Bekor qilindi',
+};
+
 export default function AdminDashboard() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('dashboard');
@@ -739,8 +766,8 @@ export default function AdminDashboard() {
                                         </div>
                                         <div className="flex items-center justify-between sm:justify-end gap-2 border-t border-[#1e1e1e] sm:border-0 pt-2 sm:pt-0">
                                             <span className="text-yellow-400 font-bold text-sm whitespace-nowrap">{formatPrice(o.amount)}</span>
-                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg whitespace-nowrap ${o.status === 'new' ? 'bg-yellow-400 text-black' : o.status === 'processing' ? 'bg-red-500 text-white' : o.status === 'delivering' ? 'bg-orange-500 text-white' : 'bg-green-500 text-white'}`}>
-                                                {o.status === 'new' ? 'Yangi' : o.status === 'processing' ? '❌ Bekor' : o.status === 'delivering' ? '🚚 Yo\'lda' : '✅ Tayyor'}
+                                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg whitespace-nowrap ${STATUS_BG[o.status] ?? 'bg-green-500 text-white'}`}>
+                                                {STATUS_LABEL_SHORT[o.status] ?? '✅ Tayyor'}
                                             </span>
                                         </div>
                                     </div>
@@ -1318,12 +1345,8 @@ export default function AdminDashboard() {
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1.5">
                                                     <span className="text-yellow-400 font-mono font-bold text-sm">{o.id}</span>
-                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${o.status === 'new' ? 'bg-yellow-400 text-black'
-                                                            : o.status === 'processing' ? 'bg-red-500 text-white'
-                                                                : o.status === 'delivering' ? 'bg-orange-500 text-white'
-                                                                    : 'bg-green-500 text-white'
-                                                        }`}>
-                                                        {o.status === 'new' ? 'Yangi' : o.status === 'processing' ? '❌ Yetkazib berilmadi' : o.status === 'delivering' ? '🚚 Yetkazib berilyapti' : '✅ Yetkazildi'}
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${STATUS_BG[o.status] ?? 'bg-green-500 text-white'}`}>
+                                                        {STATUS_LABEL[o.status] ?? '✅ Yetkazildi'}
                                                     </span>
                                                 </div>
                                                 <p className="text-white font-semibold">{o.customer}</p>
