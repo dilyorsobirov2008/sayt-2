@@ -1,129 +1,186 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '8516821604:AAEW4IT9CXtB6R9hcoeRcnsJygCVzQ-IhOo';
-const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
+import type {
+  TelegramOrderRequest,
+  TelegramOrderResponse,
+  TelegramApiResponse,
+  TelegramInlineButton,
+  OrderItem,
+} from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
-export async function POST(req: NextRequest) {
-    try {
-        const body = await req.json();
-        const { name, surname, phone, location, items, total, cashTotal, creditTotal, chatId, paymentMethod, installmentMonths, interestPercent } = body;
+// ─── Config ───────────────────────────────────────────────────────────────────
 
-        // Tovar ro'yxatini shakllantirish
-        const itemsList = items.map((item: { name: string; quantity: number; price: number; cashPrice?: number }, i: number) =>
-            `  ${i + 1}. ${item.name} × ${item.quantity} — ${item.price.toLocaleString()} so'm`
-        ).join('\n');
+const BOT_TOKEN =
+  process.env.TELEGRAM_BOT_TOKEN ?? '8516821604:AAEW4IT9CXtB6R9hcoeRcnsJygCVzQ-IhOo';
+const TELEGRAM_API = `https://api.telegram.org/bot${BOT_TOKEN}`;
 
-        // Lokatsiyani shakllantirish
-        const hasCoordinates = location?.lat && location?.lng;
-        const locationText = hasCoordinates
-            ? `📍 <a href="https://www.google.com/maps?q=${location.lat},${location.lng}">Lokatsiyani ko'rish</a>`
-            : location?.text
-                ? `📍 ${location.text}`
-                : '📍 Ko\'rsatilmagan';
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-        // Yetkazib berish uchun Google Maps havolasi
-        const mapLink = hasCoordinates
-            ? `https://www.google.com/maps?q=${location.lat},${location.lng}`
-            : location?.text
-                ? `https://www.google.com/maps/search/${encodeURIComponent(location.text)}`
-                : '';
+function buildItemsList(items: OrderItem[]): string {
+  return items
+    .map(
+      (item, i) =>
+        `  ${i + 1}. ${item.name} × ${item.quantity} — ${item.price.toLocaleString()} so'm`
+    )
+    .join('\n');
+}
 
-        // Chat ID larni .env dan olish
-        const personalChatId = process.env.TELEGRAM_CHAT_ID || '7351189083';
-        const groupChatId = process.env.TELEGRAM_GROUP_ID || '-1003854963252';
-        const possibleChatIds = [
-            personalChatId,
-            groupChatId,
-        ].filter(Boolean);
+function buildLocationText(location: TelegramOrderRequest['location']): string {
+  const hasCoords = Boolean(location.lat && location.lng);
+  if (hasCoords) {
+    return `📍 <a href="https://www.google.com/maps?q=${location.lat},${location.lng}">Lokatsiyani ko'rish</a>`;
+  }
+  if (location.text) return `📍 ${location.text}`;
+  return "📍 Ko'rsatilmagan";
+}
 
-        const paymentMethodText = paymentMethod === 'credit'
-            ? `🏦 <b>Bo'lib to'lash (${installmentMonths} oyga, +${interestPercent || 0}%)</b>`
-            : `💵 <b>Naqd pul</b>`;
+function buildMapLink(location: TelegramOrderRequest['location']): string {
+  const hasCoords = Boolean(location.lat && location.lng);
+  if (hasCoords) return `https://www.google.com/maps?q=${location.lat},${location.lng}`;
+  if (location.text) {
+    return `https://www.google.com/maps/search/${encodeURIComponent(location.text)}`;
+  }
+  return '';
+}
 
-        // Kredit ma'lumotlari
-        const creditInfo = paymentMethod === 'credit' && cashTotal && creditTotal
-            ? `\n💵 <b>Naqd narx:</b> ${cashTotal.toLocaleString()} so'm\n🏦 <b>Kredit narx:</b> ${creditTotal.toLocaleString()} so'm (+${interestPercent || 0}% ustama)\n📊 <b>Oylik to'lov:</b> ${Math.ceil(creditTotal / installmentMonths).toLocaleString()} so'm × ${installmentMonths} oy`
-            : '';
+function buildMessage(params: {
+  body: TelegramOrderRequest;
+  locationText: string;
+  itemsList: string;
+  paymentMethodText: string;
+  creditInfo: string;
+}): string {
+  const { body, locationText, itemsList, paymentMethodText, creditInfo } = params;
+  const timestamp = new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' });
 
-        const message = `🛒 <b>YANGI BUYURTMA!</b>
-        
-👤 <b>Ism:</b> ${name} ${surname || ''}
-📞 <b>Telefon:</b> ${phone}
+  return `🛒 <b>YANGI BUYURTMA!</b>
+
+👤 <b>Ism:</b> ${body.name} ${body.surname ?? ''}
+📞 <b>Telefon:</b> ${body.phone}
 📍 <b>Manzil:</b> ${locationText}
 
 🛍 <b>Buyurtma mahsulotlari:</b>
 ${itemsList}
 
-💰 <b>Umumiy narx:</b> ${total.toLocaleString()} so'm
+💰 <b>Umumiy narx:</b> ${body.total.toLocaleString()} so'm
 💳 <b>To'lov usuli:</b> ${paymentMethodText}
 ${creditInfo}
 
-⏰ ${new Date().toLocaleString('uz-UZ', { timeZone: 'Asia/Tashkent' })}`;
+⏰ ${timestamp}`;
+}
 
-        // Inline keyboard tugmalar - Yetkazib berish → Xaritaga o'tsin
-        const inlineKeyboard: any[][] = [];
-        
-        if (mapLink) {
-            inlineKeyboard.push([
-                { text: '🚚 Yetkazib berish', url: mapLink }
-            ]);
+async function sendTelegramMessage(
+  chatId: string,
+  message: string,
+  inlineKeyboard: TelegramInlineButton[][]
+): Promise<TelegramApiResponse> {
+  const res = await fetch(`${TELEGRAM_API}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text: message,
+      parse_mode: 'HTML',
+      disable_web_page_preview: false,
+      reply_markup:
+        inlineKeyboard.length > 0 ? { inline_keyboard: inlineKeyboard } : undefined,
+    }),
+  });
+
+  return res.json() as Promise<TelegramApiResponse>;
+}
+
+// ─── POST /api/telegram-order ─────────────────────────────────────────────────
+
+export async function POST(req: NextRequest): Promise<NextResponse<TelegramOrderResponse>> {
+  try {
+    const body: TelegramOrderRequest = await req.json();
+    const {
+      location,
+      items,
+      total,
+      cashTotal,
+      creditTotal,
+      paymentMethod,
+      installmentMonths,
+      interestPercent,
+    } = body;
+
+    const itemsList    = buildItemsList(items);
+    const locationText = buildLocationText(location);
+    const mapLink      = buildMapLink(location);
+
+    const paymentMethodText =
+      paymentMethod === 'credit'
+        ? `🏦 <b>Bo'lib to'lash (${installmentMonths} oyga, +${interestPercent ?? 0}%)</b>`
+        : `💵 <b>Naqd pul</b>`;
+
+    const creditInfo =
+      paymentMethod === 'credit' && cashTotal && creditTotal
+        ? `\n💵 <b>Naqd narx:</b> ${cashTotal.toLocaleString()} so'm\n` +
+          `🏦 <b>Kredit narx:</b> ${creditTotal.toLocaleString()} so'm (+${interestPercent ?? 0}% ustama)\n` +
+          `📊 <b>Oylik to'lov:</b> ${Math.ceil(creditTotal / installmentMonths).toLocaleString()} so'm × ${installmentMonths} oy`
+        : '';
+
+    const message = buildMessage({
+      body,
+      locationText,
+      itemsList,
+      paymentMethodText,
+      creditInfo,
+    });
+
+    const inlineKeyboard: TelegramInlineButton[][] = mapLink
+      ? [[{ text: '🚚 Yetkazib berish', url: mapLink }]]
+      : [];
+
+    // Chat ID lar
+    const personalChatId = process.env.TELEGRAM_CHAT_ID ?? '7351189083';
+    const groupChatId    = process.env.TELEGRAM_GROUP_ID ?? '-1003854963252';
+    const chatIds        = [personalChatId, groupChatId].filter(Boolean);
+
+    let sent       = false;
+    let lastError  = '';
+    const errors: string[] = [];
+
+    for (const chatId of chatIds) {
+      try {
+        console.log(`📡 [Telegram] Yuborilmoqda: chat_id=${chatId}`);
+        const data = await sendTelegramMessage(chatId, message, inlineKeyboard);
+        console.log(`📡 [Telegram] Javob (${chatId}):`, JSON.stringify(data));
+
+        if (data.ok) {
+          sent = true;
+          console.log(`✅ [Telegram] Muvaffaqiyatli: chat_id=${chatId}`);
+          break;
         }
 
-        let success = false;
-        let lastError = '';
-        const errors: string[] = [];
+        lastError = data.description ?? 'Noma\'lum xato';
+        errors.push(`chat_id=${chatId}: ${lastError}`);
+        console.error(`❌ [Telegram] Xato (${chatId}):`, lastError);
 
-        // Har bir chat ID ni navbat bilan tekshirib yuborib ko'ramiz
-        for (const targetChatId of possibleChatIds) {
-            try {
-                console.log(`📡 [Telegram] Yuborilmoqda: chat_id=${targetChatId}`);
-                const telegramRes = await fetch(`${TELEGRAM_API}/sendMessage`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        chat_id: targetChatId,
-                        text: message,
-                        parse_mode: 'HTML',
-                        disable_web_page_preview: false,
-                        reply_markup: inlineKeyboard.length > 0 ? {
-                            inline_keyboard: inlineKeyboard,
-                        } : undefined,
-                    }),
-                });
-
-                const telegramData = await telegramRes.json();
-                console.log(`📡 [Telegram] Javob (chat_id=${targetChatId}):`, JSON.stringify(telegramData, null, 2));
-
-                if (telegramData.ok) {
-                    success = true;
-                    console.log(`✅ [Telegram] Muvaffaqiyatli yuborildi: chat_id=${targetChatId}`);
-                    break;
-                } else {
-                    lastError = telegramData.description || 'Noma\'lum xato';
-                    errors.push(`chat_id=${targetChatId}: ${lastError}`);
-                    console.error(`❌ [Telegram] Xato (chat_id=${targetChatId}):`, lastError);
-                    
-                    if (telegramData.error_code === 400 && targetChatId.startsWith('-100')) {
-                        console.warn(`💡 [Maslahat] Chat ID ${targetChatId} superguruh uchun bo'lishi mumkin, lekin bot u yerda admin emas yoki ID noto'g'ri.`);
-                    }
-                }
-            } catch (fetchErr) {
-                const errMsg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
-                errors.push(`chat_id=${targetChatId}: fetch xato - ${errMsg}`);
-                console.error(`❌ [Telegram] Fetch xato (chat_id=${targetChatId}):`, errMsg);
-            }
+        if (data.error_code === 400 && chatId.startsWith('-100')) {
+          console.warn(
+            `💡 Chat ID ${chatId} — bot guruhda admin emas yoki ID noto'g'ri.`
+          );
         }
-
-        if (!success) {
-            console.error('❌ [Telegram] Barcha chat_id larda xatolik yuz berdi:', errors);
-            return NextResponse.json({ error: lastError, errors, success: false }, { status: 400 });
-        }
-
-        return NextResponse.json({ success: true });
-    } catch (err) {
-        console.error('Telegram order error:', err);
-        return NextResponse.json({ error: 'Server xatosi', success: false }, { status: 500 });
+      } catch (fetchErr) {
+        const msg = fetchErr instanceof Error ? fetchErr.message : String(fetchErr);
+        errors.push(`chat_id=${chatId}: fetch xato — ${msg}`);
+        console.error(`❌ [Telegram] Fetch xato (${chatId}):`, msg);
+      }
     }
+
+    if (!sent) {
+      console.error('❌ [Telegram] Barcha chat_id larda xatolik:', errors);
+      return NextResponse.json({ success: false, error: lastError, errors }, { status: 400 });
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (e) {
+    const message = e instanceof Error ? e.message : 'Server xatosi';
+    console.error('[POST /api/telegram-order]', e);
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
+  }
 }
