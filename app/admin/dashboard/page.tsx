@@ -735,7 +735,7 @@ export default function AdminDashboard() {
                                         <div>
                                             <p className="text-white font-semibold">{o.customer}</p>
                                             <p className="text-gray-500 text-[11px]">📞 {o.phone} · {o.date}</p>
-                                            <p className="text-gray-600 text-[11px]">📦 {o.product} {o.installment > 1 ? `· ${o.installment} oy` : ''}</p>
+                                            <p className="text-gray-600 text-[11px]">📦 {o.product} {(o.installment ?? 0) > 1 ? `· ${o.installment} oy` : ''}</p>
                                         </div>
                                         <div className="flex items-center justify-between sm:justify-end gap-2 border-t border-[#1e1e1e] sm:border-0 pt-2 sm:pt-0">
                                             <span className="text-yellow-400 font-bold text-sm whitespace-nowrap">{formatPrice(o.amount)}</span>
