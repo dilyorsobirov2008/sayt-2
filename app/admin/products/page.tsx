@@ -14,7 +14,11 @@ import {
   Loader2,
   FileSpreadsheet,
   ArrowDownToLine,
-  X
+  X,
+  Sparkles,
+  Zap,
+  Tag,
+  Star
 } from 'lucide-react';
 
 export default function ProductsAdminPage() {
@@ -23,6 +27,56 @@ export default function ProductsAdminPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [importing, setImporting] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+
+  // AI Specs Generation State
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiSpecs, setAiSpecs] = useState<{key: string, value: string}[]>([]);
+  const [aiAdvantages, setAiAdvantages] = useState<string[]>([]);
+  const [aiSeoKeywords, setAiSeoKeywords] = useState<string[]>([]);
+  const [aiProductType, setAiProductType] = useState('');
+  const [aiBrand, setAiBrand] = useState('');
+  const [aiModel, setAiModel] = useState('');
+  const [aiDescription, setAiDescription] = useState('');
+  const [aiError, setAiError] = useState('');
+  const [aiFallback, setAiFallback] = useState(false);
+
+  const handleAiGenerate = async () => {
+    if (!formData.title_uz.trim()) {
+      setAiError('Avval mahsulot nomini kiriting!');
+      return;
+    }
+    setAiLoading(true);
+    setAiError('');
+    setAiSpecs([]);
+    setAiAdvantages([]);
+    setAiSeoKeywords([]);
+    setAiProductType('');
+    setAiBrand('');
+    setAiModel('');
+    setAiDescription('');
+    setAiFallback(false);
+    try {
+      const res = await fetch('/api/generate-specs', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productName: formData.title_uz }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'API xatosi');
+      setAiSpecs(data.specs || []);
+      setAiAdvantages(data.advantages || []);
+      setAiSeoKeywords(data.seo_keywords || []);
+      setAiProductType(data.product_type || '');
+      setAiBrand(data.brand || '');
+      setAiModel(data.model || '');
+      setAiDescription(data.short_description || '');
+      setAiFallback(!!data.fallback);
+    } catch (err: any) {
+      setAiError(err.message || 'AI xatolik yuz berdi');
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -286,6 +340,21 @@ export default function ProductsAdminPage() {
                     value={formData.title_uz}
                     onChange={e => setFormData({...formData, title_uz: e.target.value})}
                   />
+                  {/* AI Generate Button */}
+                  {formData.title_uz.trim().length > 2 && (
+                    <button
+                      type="button"
+                      onClick={handleAiGenerate}
+                      disabled={aiLoading}
+                      className="mt-2 w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all bg-gradient-to-r from-purple-600/20 to-indigo-600/20 border border-purple-500/30 text-purple-300 hover:from-purple-600/30 hover:to-indigo-600/30 hover:border-purple-500/50 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50 disabled:cursor-wait"
+                    >
+                      {aiLoading ? (
+                        <><Loader2 size={14} className="animate-spin" /> AI Generatsiya qilmoqda...</>
+                      ) : (
+                        <><Sparkles size={14} /> AI bilan xususiyatlar yaratish</>
+                      )}
+                    </button>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Market Valuation (UZS)</label>
@@ -607,6 +676,112 @@ export default function ProductsAdminPage() {
                   )}
                 </div>
               </div>
+
+                {/* ═══ AI GENERATED SPECS DISPLAY ═══ */}
+                {(aiSpecs.length > 0 || aiError) && (
+                  <div className="col-span-1 md:col-span-2 space-y-4">
+                    {aiError && (
+                      <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+                        {aiError}
+                      </div>
+                    )}
+
+                    {aiSpecs.length > 0 && (
+                      <div className="rounded-3xl border border-purple-500/20 bg-gradient-to-br from-purple-500/5 to-indigo-500/5 overflow-hidden">
+                        {/* Header */}
+                        <div className="px-6 py-4 border-b border-purple-500/10 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-xl bg-purple-500/20">
+                              <Sparkles size={16} className="text-purple-400" />
+                            </div>
+                            <div>
+                              <p className="text-xs font-black text-white uppercase tracking-wider">AI Generatsiya Natijalari</p>
+                              <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">
+                                {aiFallback ? 'Shablon asosida (AI kvota tugagan)' : 'Gemini AI tomonidan yaratildi'}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => { setAiSpecs([]); setAiAdvantages([]); setAiSeoKeywords([]); setAiError(''); }}
+                            className="text-gray-500 hover:text-white transition-colors"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+
+                        {/* Product Info */}
+                        {(aiProductType || aiBrand || aiDescription) && (
+                          <div className="px-6 py-4 border-b border-purple-500/10 space-y-2">
+                            {aiProductType && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest w-20">Turi:</span>
+                                <span className="text-xs font-bold text-white">{aiProductType}</span>
+                              </div>
+                            )}
+                            {aiBrand && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest w-20">Brend:</span>
+                                <span className="text-xs font-bold text-white">{aiBrand}</span>
+                              </div>
+                            )}
+                            {aiModel && (
+                              <div className="flex items-center gap-2">
+                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest w-20">Model:</span>
+                                <span className="text-xs font-bold text-white">{aiModel}</span>
+                              </div>
+                            )}
+                            {aiDescription && (
+                              <p className="text-xs text-gray-400 mt-2 leading-relaxed">{aiDescription}</p>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Specs Table */}
+                        <div className="divide-y divide-white/5">
+                          {aiSpecs.map((spec, idx) => (
+                            <div key={idx} className="flex items-center justify-between px-6 py-3 hover:bg-white/[0.02] transition-colors">
+                              <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{spec.key}</span>
+                              <span className="text-xs font-black text-white text-right">{spec.value}</span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Advantages */}
+                        {aiAdvantages.length > 0 && (
+                          <div className="px-6 py-4 border-t border-purple-500/10">
+                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                              <Zap size={12} className="text-yellow-400" /> Afzalliklar
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {aiAdvantages.map((adv, idx) => (
+                                <span key={idx} className="px-3 py-1.5 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-[10px] font-bold">
+                                  {adv}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* SEO Keywords */}
+                        {aiSeoKeywords.length > 0 && (
+                          <div className="px-6 py-4 border-t border-purple-500/10">
+                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                              <Tag size={12} className="text-blue-400" /> SEO Kalit So'zlar
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {aiSeoKeywords.map((kw, idx) => (
+                                <span key={idx} className="px-3 py-1.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 text-[10px] font-bold">
+                                  #{kw}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
               <div className="flex items-center gap-4 p-6 bg-white/5 border border-white/5 rounded-3xl">
                 <input 
