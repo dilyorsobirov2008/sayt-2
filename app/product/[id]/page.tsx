@@ -364,7 +364,10 @@ export default function ProductPage() {
                                                     image: selectedVariant.image ?? undefined,
                                                   }
                                                 : undefined;
-                                            addToCart(product, mappedVariant, selectedStorageVariant || undefined);
+                                            const sanitizedVariant = selectedStorageVariant
+                                                ? { ...selectedStorageVariant, sku: selectedStorageVariant.sku ?? undefined }
+                                                : undefined;
+                                            addToCart(product, mappedVariant, sanitizedVariant);
                                             router.push('/cart?direct=1'); 
                                         }}
                             disabled={!product.inStock}
